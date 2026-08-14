@@ -1,0 +1,77 @@
+@model TicketsApp.ViewModels.RegistroViewModel
+@{
+    ViewData["Title"] = "Registro de Usuario";
+}
+
+<div class="row justify-content-center py-3">
+    <div class="col-md-8 col-lg-6">
+        <div class="card card-tecnm shadow-lg overflow-hidden border-0">
+            <div class="p-4 text-center text-white" style="background: var(--tecnm-accent-gradient); border-bottom: 3px solid var(--tecnm-gold);">
+                <div class="bg-white p-2 rounded-3 d-inline-block shadow-sm mb-2">
+                    <img src="~/img/logo-vertical.png" alt="TecNM Logo" height="70" />
+                </div>
+                <h4 class="fw-bold mb-1">Registro de Usuario</h4>
+                <p class="text-white-50 small mb-0">Comunidad Tecnológico de Monclova</p>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <div class="card bg-light border-0 rounded-3 p-3 mb-4">
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-info-circle-fill text-primary fs-5 flex-shrink-0"></i>
+                        <div class="small">
+                            <span class="fw-bold d-block text-dark">Detección automática de prioridad:</span>
+                            <ul class="mb-0 ps-3 text-muted">
+                                <li><strong>Alumnos:</strong> Matrícula institucional (ej. <code>I22050319@monclova.tecnm.mx</code>) &rarr; <span class="badge bg-secondary">Prioridad Normal</span></li>
+                                <li><strong>Docentes:</strong> Formato nombre.apellido (ej. <code>ruben.rr@monclova.tecnm.mx</code>) &rarr; <span class="badge bg-danger">Prioridad Alta</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="Registro" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3 border-0"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="NombreCompleto" class="form-label fw-semibold small text-secondary text-uppercase"></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-primary"></i></span>
+                            <input asp-for="NombreCompleto" class="form-control form-control-custom border-start-0 ps-0" placeholder="Ej. Juan Pérez García" />
+                        </div>
+                        <span asp-validation-for="NombreCompleto" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold small text-secondary text-uppercase"></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-primary"></i></span>
+                            <input asp-for="Email" class="form-control form-control-custom border-start-0 ps-0" placeholder="usuario@monclova.tecnm.mx" />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold small text-secondary text-uppercase"></label>
+                            <input asp-for="Password" class="form-control form-control-custom" placeholder="••••••••" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold small text-secondary text-uppercase"></label>
+                            <input asp-for="ConfirmPassword" class="form-control form-control-custom" placeholder="••••••••" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-tecnm-primary w-100 py-3 mb-3 fw-bold fs-6">
+                        <i class="bi bi-person-check-fill me-2"></i>Crear mi Cuenta
+                    </button>
+                </form>
+
+                <div class="text-center pt-2 border-top">
+                    <span class="text-muted small">¿Ya tienes una cuenta registrada?</span>
+                    <a asp-action="Login" class="text-decoration-none fw-bold ms-1 text-primary">Iniciar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

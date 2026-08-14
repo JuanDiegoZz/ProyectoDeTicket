@@ -1,0 +1,303 @@
+@model TicketsApp.ViewModels.DashboardAdminViewModel
+@{
+    ViewData["Title"] = "Dashboard Administrador";
+}
+
+<!-- Encabezado del Dashboard -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-white p-2 rounded-3 shadow-sm border">
+            <img src="~/img/logo-vertical.png" alt="TecNM" height="48" />
+        </div>
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Panel de Control TI</h3>
+            <p class="text-muted mb-0 small">Métricas, auditoría, reasignaciones y supervisión general</p>
+        </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-action="ExportarCsv" class="btn btn-outline-success rounded-3 fw-semibold">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar a Excel (CSV)
+        </a>
+        <a asp-controller="Account" asp-action="GestionTecnicos" class="btn btn-outline-primary rounded-3 fw-semibold">
+            <i class="bi bi-people-fill me-1"></i>Gestionar Técnicos
+        </a>
+        <a asp-action="Crear" class="btn btn-tecnm-primary rounded-3">
+            <i class="bi bi-plus-lg me-1"></i>Nuevo Ticket
+        </a>
+    </div>
+</div>
+
+<!-- KPIs Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card card-tecnm card-tecnm-hover p-3 border-0">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Total Tickets</div>
+                    <div class="h2 fw-extrabold mb-0 text-dark">@Model.TotalTickets</div>
+                </div>
+                <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-ticket-detailed-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card card-tecnm card-tecnm-hover p-3 border-0">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Abiertos</div>
+                    <div class="h2 fw-extrabold mb-0 text-warning">@Model.TicketsAbiertos</div>
+                </div>
+                <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card card-tecnm card-tecnm-hover p-3 border-0">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">En Progreso</div>
+                    <div class="h2 fw-extrabold mb-0 text-info">@Model.TicketsEnProgreso</div>
+                </div>
+                <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-gear-wide-connected"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card card-tecnm card-tecnm-hover p-3 border-0">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Resueltos</div>
+                    <div class="h2 fw-extrabold mb-0 text-success">@Model.TicketsResueltos</div>
+                </div>
+                <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Gráfica de Áreas -->
+    <div class="col-lg-6">
+        <div class="card card-tecnm h-100 border-0 overflow-hidden">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Edificios / Áreas con Más Reportes</h6>
+                <span class="badge bg-light text-secondary">Frecuencia</span>
+            </div>
+            <div class="card-body p-4">
+                @if (!Model.FallasPorUbicacion.Any())
+                {
+                    <div class="text-center text-muted py-4">Aún no hay incidencias registradas</div>
+                }
+                @foreach (var item in Model.FallasPorUbicacion)
+                {
+                    var porcentaje = Model.TotalTickets > 0 ? (int)((double)item.Cantidad / Model.TotalTickets * 100) : 0;
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark small"><i class="bi bi-building me-1 text-secondary"></i>@item.Ubicacion</span>
+                            <span class="badge bg-dark text-white rounded-pill">@item.Cantidad reportes (@porcentaje%)</span>
+                        </div>
+                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: @porcentaje%" aria-valuenow="@porcentaje" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Eficiencia de Técnicos -->
+    <div class="col-lg-6">
+        <div class="card card-tecnm h-100 border-0 overflow-hidden">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-person-check-fill text-primary me-2"></i>Eficiencia del Equipo Técnico</h6>
+                <span class="badge bg-light text-secondary">Rendimiento</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-tecnm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Técnico</th>
+                                <th class="text-center">En Atención</th>
+                                <th class="text-center">Resueltos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.EficienciaTecnicos.Any())
+                            {
+                                <tr><td colspan="3" class="text-center text-muted py-4">No hay técnicos asignados aún</td></tr>
+                            }
+                            @foreach (var tec in Model.EficienciaTecnicos)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark"><i class="bi bi-person-badge me-2 text-primary"></i>@tec.Nombre</td>
+                                    <td class="text-center"><span class="badge-status-progreso">@tec.EnProgreso</span></td>
+                                    <td class="text-center"><span class="badge-status-resuelto">@tec.Resueltos</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla Interactiva con Buscador y Filtros en Vivo -->
+<div class="card card-tecnm border-0 overflow-hidden">
+    <div class="card-header bg-white py-3 border-bottom">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-table text-primary me-2"></i>Todas las Incidencias del Campus</h6>
+            
+            <!-- Barra de Filtro y Búsqueda en Vivo -->
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <div class="input-group input-group-sm" style="max-width: 250px;">
+                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                    <input id="inputFiltroBusqueda" type="text" class="form-control" placeholder="Buscar folio, solicitante, falla..." />
+                </div>
+                <select id="selectFiltroEstado" class="form-select form-select-sm" style="width: 140px;">
+                    <option value="">-- Todos los Estados --</option>
+                    <option value="Abierto">Abiertos</option>
+                    <option value="EnProgreso">En Progreso</option>
+                    <option value="Resuelto">Resueltos</option>
+                </select>
+                <select id="selectFiltroPrioridad" class="form-select form-select-sm" style="width: 150px;">
+                    <option value="">-- Prioridades --</option>
+                    <option value="Alta">Alta (Docente)</option>
+                    <option value="Normal">Normal (Alumno)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table id="tablaTicketsAdmin" class="table table-tecnm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Folio</th>
+                        <th>Problema / Falla</th>
+                        <th>Solicitante</th>
+                        <th>Ubicación</th>
+                        <th>Técnico Asignado</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.UltimosTickets.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-4">No hay tickets registrados aún en el sistema.</td></tr>
+                    }
+                    @foreach (var t in Model.UltimosTickets)
+                    {
+                        <tr class="ticket-row" data-estado="@t.Estado" data-prioridad="@t.Prioridad">
+                            <td class="fw-bold text-primary">#@t.Id</td>
+                            <td>
+                                <a asp-action="Detalle" asp-route-id="@t.Id" class="fw-bold text-dark text-decoration-none">
+                                    @t.Titulo
+                                </a>
+                                <small class="text-muted d-block text-truncate" style="max-width: 220px;">@t.Descripcion</small>
+                            </td>
+                            <td>
+                                <div class="fw-semibold small">@t.Solicitante?.NombreCompleto</div>
+                                <span class="text-muted" style="font-size: 0.75rem;">@t.Solicitante?.Email</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold">@t.Ubicacion?.Nombre</span>
+                                @if (!string.IsNullOrEmpty(t.DetalleAula))
+                                {
+                                    <small class="text-muted d-block">@t.DetalleAula</small>
+                                }
+                            </td>
+                            <td>
+                                @if (t.TecnicoAsignado != null)
+                                {
+                                    <span class="small fw-semibold text-dark"><i class="bi bi-person-check me-1 text-success"></i>@t.TecnicoAsignado.NombreCompleto</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Sin asignar</span>
+                                }
+                            </td>
+                            <td>
+                                @if (t.Prioridad == TicketsApp.Models.PrioridadTicket.Alta)
+                                {
+                                    <span class="badge-priority-alta"><i class="bi bi-lightning-charge-fill me-1"></i>Alta</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-priority-normal">Normal</span>
+                                }
+                            </td>
+                            <td>
+                                @switch (t.Estado)
+                                {
+                                    case TicketsApp.Models.EstadoTicket.Abierto:
+                                        <span class="badge-status-abierto">Abierto</span>
+                                        break;
+                                    case TicketsApp.Models.EstadoTicket.EnProgreso:
+                                        <span class="badge-status-progreso">En Progreso</span>
+                                        break;
+                                    case TicketsApp.Models.EstadoTicket.Resuelto:
+                                        <span class="badge-status-resuelto">Resuelto</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Detalle" asp-route-id="@t.Id" class="btn btn-sm btn-outline-primary rounded-2">
+                                    <i class="bi bi-eye-fill me-1"></i>Ver Detalle
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const inputBusqueda = document.getElementById("inputFiltroBusqueda");
+        const selectEstado = document.getElementById("selectFiltroEstado");
+        const selectPrioridad = document.getElementById("selectFiltroPrioridad");
+        const rows = document.querySelectorAll("#tablaTicketsAdmin tbody tr.ticket-row");
+
+        function filtrarTabla() {
+            const texto = inputBusqueda.value.toLowerCase().trim();
+            const estadoFiltro = selectEstado.value;
+            const prioridadFiltro = selectPrioridad.value;
+
+            rows.forEach(row => {
+                const contenidoFila = row.textContent.toLowerCase();
+                const estado = row.getAttribute("data-estado");
+                const prioridad = row.getAttribute("data-prioridad");
+
+                const coincideTexto = !texto || contenidoFila.includes(texto);
+                const coincideEstado = !estadoFiltro || estado === estadoFiltro;
+                const coincidePrioridad = !prioridadFiltro || prioridad === prioridadFiltro;
+
+                if (coincideTexto && coincideEstado && coincidePrioridad) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        inputBusqueda.addEventListener("input", filtrarTabla);
+        selectEstado.addEventListener("change", filtrarTabla);
+        selectPrioridad.addEventListener("change", filtrarTabla);
+    });
+</script>
+}

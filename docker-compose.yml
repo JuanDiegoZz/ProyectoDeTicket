@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Servicio de Base de Datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: tickets_postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: tickets_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secure_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tickets_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tickets_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Servicio Aplicación Web ASP.NET MVC (.NET 8)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tickets_aspnet_app
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=80
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=tickets_db;Username=postgres;Password=postgres_secure_password_2026
+    ports:
+      - "8080:80"
+    volumes:
+      # Persistencia para las evidencias subidas
+      - web_uploads:/app/wwwroot/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - tickets_network
+
+volumes:
+  postgres_data:
+    driver: local
+  web_uploads:
+    driver: local
+
+networks:
+  tickets_network:
+    driver: bridge

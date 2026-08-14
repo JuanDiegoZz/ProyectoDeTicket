@@ -1,0 +1,68 @@
+@model TicketsApp.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="row justify-content-center align-items-center py-4">
+    <div class="col-md-8 col-lg-5">
+        <div class="card card-tecnm shadow-lg overflow-hidden border-0">
+            <!-- Header visual con logo institucional -->
+            <div class="p-4 text-center text-white" style="background: var(--tecnm-accent-gradient); border-bottom: 3px solid var(--tecnm-gold);">
+                <div class="bg-white p-2 rounded-3 d-inline-block shadow-sm mb-3">
+                    <img src="~/img/logo-vertical.png" alt="TecNM Monclova" height="85" />
+                </div>
+                <h4 class="fw-bold mb-1">Mesa de Ayuda TI</h4>
+                <p class="text-white-50 small mb-0">Tecnológico Nacional de México | Monclova</p>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3 border-0"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold text-secondary small text-uppercase">Correo Institucional</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-primary"></i></span>
+                            <input asp-for="Email" class="form-control form-control-custom border-start-0 ps-0" placeholder="usuario@monclova.tecnm.mx" autofocus />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Password" class="form-label fw-semibold text-secondary small text-uppercase">Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-lock text-primary"></i></span>
+                            <input asp-for="Password" class="form-control form-control-custom border-start-0 ps-0" placeholder="••••••••" />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-tecnm-primary w-100 py-3 mb-3 fw-bold fs-6">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Acceder al Sistema
+                    </button>
+                </form>
+
+                <div class="text-center pt-2 border-top">
+                    <p class="text-muted small mb-2">¿Aún no tienes cuenta registrada?</p>
+                    <a asp-action="Registro" class="btn btn-outline-primary btn-sm px-4 fw-semibold rounded-pill">
+                        <i class="bi bi-person-plus me-1"></i>Crear Cuenta de Alumno / Docente
+                    </a>
+                </div>
+
+                <!-- Tarjeta de credenciales rápidas de prueba -->
+                <div class="mt-4 p-3 bg-light rounded-3 border">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-key-fill text-warning fs-5 me-2"></i>
+                        <strong class="text-dark small">Credenciales de Acceso Rápido:</strong>
+                    </div>
+                    <div class="small text-muted d-flex justify-content-between mb-1">
+                        <span>Admin:</span> <code>admin@monclova.tecnm.mx</code>
+                    </div>
+                    <div class="small text-muted d-flex justify-content-between">
+                        <span>Password:</span> <code>Admin123!</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
