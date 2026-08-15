@@ -13,19 +13,51 @@
     <link rel="stylesheet" href="~/css/custom.css" />
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-tecnm py-2">
+    <!-- HEADER SUPERIOR INSTITUCIONAL (Banner del Tecnológico) -->
+    <header class="bg-white border-bottom py-2 d-none d-md-block">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <img src="~/img/logo-horizontal.png" alt="TecNM Logo" height="38" />
+                <div class="border-start border-2 ps-3 py-1">
+                    <span class="fw-bold text-dark d-block" style="font-size: 0.95rem; letter-spacing: 0.3px;">TECNOLÓGICO NACIONAL DE MÉXICO</span>
+                    <small class="text-muted" style="font-size: 0.75rem;">Instituto Tecnológico Superior de Monclova &bull; Centro de Cómputo e Informática</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-light text-secondary border px-3 py-2">
+                    <i class="bi bi-clock me-1 text-primary"></i>Mesa de Ayuda TI: 8:00 - 18:00 hrs
+                </span>
+                <button id="btnToggleDark" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Cambiar Tema">
+                    <i class="bi bi-moon-stars me-1" id="iconDark"></i>Tema
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVBAR PRINCIPAL RESPONSIVO -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-tecnm py-2 sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" asp-controller="Tickets" asp-action="Index">
-                <img src="~/img/logo-horizontal.png" alt="TecNM Logo" height="42" class="me-3 bg-white p-1 rounded" />
-                <div class="d-none d-sm-block border-start border-white border-opacity-25 ps-3">
-                    <span class="fw-bold d-block text-white" style="font-size: 1.05rem; letter-spacing: 0.5px;">MESA DE AYUDA TI</span>
-                    <small class="text-white-50" style="font-size: 0.75rem;">Campus Monclova</small>
+                <div class="d-md-none me-2 bg-white p-1 rounded">
+                    <img src="~/img/logo-vertical.png" alt="TecNM Logo" height="32" />
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-headset me-2 text-warning fs-5"></i>
+                    <div>
+                        <span class="fw-bold text-white d-block" style="font-size: 1.05rem; letter-spacing: 0.5px;">SOPORTE TI</span>
+                        <small class="text-white-50 d-none d-sm-block" style="font-size: 0.7rem;">Campus Monclova</small>
+                    </div>
                 </div>
             </a>
             
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center d-md-none gap-2">
+                <button id="btnToggleDarkMobile" class="btn btn-sm btn-outline-light rounded-circle" style="width: 34px; height: 34px; padding: 0;">
+                    <i class="bi bi-moon-stars" id="iconDarkMobile"></i>
+                </button>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
 
             <div class="collapse navbar-collapse" id="navbarMain">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
@@ -57,7 +89,7 @@
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle nav-link-custom d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                                <div class="bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                <div class="bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center me-2 shadow-sm" style="width: 34px; height: 34px; font-size: 0.9rem;">
                                     @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
                                 </div>
                                 <div class="text-start">
@@ -67,8 +99,9 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-2">
                                 <li class="px-3 py-2 border-bottom">
-                                    <small class="text-muted d-block">Correo Institucional:</small>
-                                    <span class="fw-semibold small text-dark">@User.FindFirst(ClaimTypes.Email)?.Value</span>
+                                    <small class="text-muted d-block">Usuario Conectado:</small>
+                                    <span class="fw-bold small text-dark d-block">@User.Identity.Name</span>
+                                    <span class="small text-muted">@User.FindFirst(ClaimTypes.Email)?.Value</span>
                                 </li>
                                 <li class="p-2">
                                     <form asp-controller="Account" asp-action="Logout" method="post">
@@ -123,13 +156,45 @@
                 <img src="~/img/logo-vertical.png" alt="TecNM" height="24" />
                 <span>Instituto Tecnológico Superior de Monclova &copy; @DateTime.UtcNow.Year</span>
             </div>
-            <div>
-                <span class="badge bg-light text-secondary border">Mesa de Ayuda TI v1.0 MVP</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-light text-secondary border">Mesa de Ayuda TI v1.5</span>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="bi bi-shield-lock-fill me-1"></i>Conexión Segura</span>
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script para Modo Oscuro / Claro Persistente -->
+    <script>
+        (function() {
+            const currentTheme = localStorage.getItem('tecnm_theme') || 'light';
+            if (currentTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+
+            function updateIcons(isDark) {
+                const icon = document.getElementById('iconDark');
+                const iconMobile = document.getElementById('iconDarkMobile');
+                if (icon) icon.className = isDark ? 'bi bi-sun-fill me-1 text-warning' : 'bi bi-moon-stars me-1';
+                if (iconMobile) iconMobile.className = isDark ? 'bi bi-sun-fill text-warning' : 'bi bi-moon-stars';
+            }
+
+            function toggleTheme() {
+                const isDark = document.body.classList.toggle('dark-mode');
+                localStorage.setItem('tecnm_theme', isDark ? 'dark' : 'light');
+                updateIcons(isDark);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                updateIcons(document.body.classList.contains('dark-mode'));
+                const btn = document.getElementById('btnToggleDark');
+                const btnMob = document.getElementById('btnToggleDarkMobile');
+                if (btn) btn.addEventListener('click', toggleTheme);
+                if (btnMob) btnMob.addEventListener('click', toggleTheme);
+            });
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
