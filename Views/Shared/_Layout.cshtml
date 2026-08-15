@@ -10,14 +10,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Estilos personalizados TecNM -->
-    <link rel="stylesheet" href="~/css/custom.css" />
+    <link rel="stylesheet" href="~/css/custom.css?v=@DateTime.UtcNow.Ticks" />
 </head>
 <body>
     <!-- HEADER SUPERIOR INSTITUCIONAL (Banner del Tecnológico) -->
     <header class="bg-white border-bottom py-2 d-none d-md-block">
         <div class="container d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
-                <img src="~/img/logo-horizontal.png" alt="TecNM Logo" height="38" />
+                <img src="~/img/logo-limpio.png?v=@DateTime.UtcNow.Ticks" alt="TecNM Logo" height="42" />
                 <div class="border-start border-2 ps-3 py-1">
                     <span class="fw-bold text-dark d-block" style="font-size: 0.95rem; letter-spacing: 0.3px;">TECNOLÓGICO NACIONAL DE MÉXICO</span>
                     <small class="text-muted" style="font-size: 0.75rem;">Instituto Tecnológico Superior de Monclova &bull; Centro de Cómputo e Informática</small>
@@ -38,11 +38,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark navbar-tecnm py-2 sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" asp-controller="Tickets" asp-action="Index">
-                <div class="d-md-none me-2 bg-white p-1 rounded">
-                    <img src="~/img/logo-vertical.png" alt="TecNM Logo" height="32" />
-                </div>
+                <img src="~/img/logo-limpio.png?v=@DateTime.UtcNow.Ticks" alt="TecNM Logo" height="34" class="me-2" />
                 <div class="d-flex align-items-center">
-                    <i class="bi bi-headset me-2 text-warning fs-5"></i>
                     <div>
                         <span class="fw-bold text-white d-block" style="font-size: 1.05rem; letter-spacing: 0.5px;">SOPORTE TI</span>
                         <small class="text-white-50 d-none d-sm-block" style="font-size: 0.7rem;">Campus Monclova</small>
@@ -153,7 +150,7 @@
     <footer class="bg-white border-top py-3 text-center text-muted small mt-auto">
         <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center gap-2">
-                <img src="~/img/logo-vertical.png" alt="TecNM" height="24" />
+                <img src="~/img/logo-limpio.png?v=@DateTime.UtcNow.Ticks" alt="TecNM" height="26" />
                 <span>Instituto Tecnológico Superior de Monclova &copy; @DateTime.UtcNow.Year</span>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -165,7 +162,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Script para Modo Oscuro / Claro Persistente -->
     <script>
         (function() {
             const currentTheme = localStorage.getItem('tecnm_theme') || 'light';
