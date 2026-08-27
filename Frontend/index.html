@@ -12,13 +12,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <!-- Estilos Custom -->
   <link rel="stylesheet" href="/src/assets/styles.css">
-  <!-- ImportMap para dependencias npm (Vue 3, Chart.js, vue-chartjs) -->
+  <!-- ImportMap para dependencias (Vue 3, Chart.js, vue-chartjs) -->
   <script type="importmap">
     {
       "imports": {
-        "vue": "/node_modules/vue/dist/vue.esm-browser.js",
-        "chart.js": "/node_modules/chart.js/auto/auto.js",
-        "vue-chartjs": "/node_modules/vue-chartjs/dist/index.js"
+        "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js",
+        "chart.js": "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.js/+esm",
+        "vue-chartjs": "https://cdn.jsdelivr.net/npm/vue-chartjs@5.3.1/+esm"
       }
     }
   </script>
