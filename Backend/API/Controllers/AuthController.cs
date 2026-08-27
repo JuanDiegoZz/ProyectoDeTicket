@@ -77,12 +77,16 @@ public class AuthController : ControllerBase
     [HttpPost("registro")]
     public async Task<IActionResult> Registro([FromBody] RegistroViewModel model)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+        {
+            var errores = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return BadRequest(new { mensaje = errores });
+        }
 
         var existe = await _context.Usuarios.AnyAsync(u => u.Email.ToLower() == model.Email.Trim().ToLower());
         if (existe)
         {
-            return BadRequest(new { mensaje = "El correo electrónico ya se encuentra registrado." });
+            return BadRequest(new { mensaje = "El correo electrónico ya se encuentra registrado. Intenta con otro correo o inicia sesión." });
         }
 
         var clasificacion = _emailClassifier.ClasificarEmail(model.Email);

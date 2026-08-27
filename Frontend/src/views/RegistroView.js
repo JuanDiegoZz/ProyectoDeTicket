@@ -27,10 +27,34 @@ export default {
       this.cargando = true;
       try {
         await authService.registro(this.nombreCompleto, this.email, this.password, this.confirmPassword);
-        this.exito = '¡Registro exitoso! Ya puedes iniciar sesión con tus credenciales.';
-        setTimeout(() => this.$emit('navigate', 'login'), 2000);
+        
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: '¡Registro Exitoso!',
+            text: 'Tu cuenta ha sido creada correctamente. Ahora puedes iniciar sesión.',
+            icon: 'success',
+            confirmButtonText: 'Ir a Iniciar Sesión',
+            confirmButtonColor: '#1B396A'
+          }).then(() => {
+            this.$emit('navigate', 'login');
+          });
+        } else {
+          this.exito = '¡Registro exitoso! Ya puedes iniciar sesión con tus credenciales.';
+          setTimeout(() => this.$emit('navigate', 'login'), 2000);
+        }
       } catch (err) {
-        this.error = err.message || 'Error al registrar usuario.';
+        const mensajeError = err.message || 'No se pudo completar el registro. Verifica los datos ingresados.';
+        this.error = mensajeError;
+        
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Atención en el Registro',
+            text: mensajeError,
+            icon: 'warning',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#1B396A'
+          });
+        }
       } finally {
         this.cargando = false;
       }
