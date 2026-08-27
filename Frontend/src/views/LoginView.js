@@ -31,8 +31,8 @@ export default {
         <div class="card card-tecnm border-0 shadow-lg overflow-hidden">
           <div class="card-body p-4 p-md-5">
             <div class="text-center mb-4">
-              <div class="bg-white p-2 rounded-3 d-inline-block shadow-sm mb-3">
-                <span class="fs-1 text-primary"><i class="bi bi-shield-lock-fill"></i></span>
+              <div class="d-inline-block mb-3">
+                <img src="/src/assets/img/logo-tecnm-vertical-small.png" alt="TecNM Logo" height="70" class="login-logo-img" />
               </div>
               <h4 class="fw-extrabold text-dark mb-1">Iniciar Sesión</h4>
               <p class="text-muted small">Sistema de Tickets de Soporte TI — TecNM Monclova</p>

@@ -42,6 +42,9 @@ export default {
         <div class="card card-tecnm border-0 shadow-lg overflow-hidden">
           <div class="card-body p-4 p-md-5">
             <div class="text-center mb-4">
+              <div class="d-inline-block mb-3">
+                <img src="/src/assets/img/logo-tecnm-vertical-small.png" alt="TecNM Logo" height="70" class="login-logo-img" />
+              </div>
               <h4 class="fw-extrabold text-dark mb-1">Registro de Usuario</h4>
               <p class="text-muted small">Crea tu cuenta institucional (@monclova.tecnm.mx)</p>
             </div>

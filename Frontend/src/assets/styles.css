@@ -36,6 +36,17 @@ body.dark-mode .logo-header-img {
     filter: brightness(0) invert(1) drop-shadow(0 0 2px rgba(255,255,255,0.3));
 }
 
+.login-logo-img {
+    height: 70px;
+    width: auto;
+    object-fit: contain;
+    transition: all 0.3s ease;
+}
+
+body.dark-mode .login-logo-img {
+    filter: brightness(0) invert(1) drop-shadow(0 0 3px rgba(255,255,255,0.4));
+}
+
 /* ==========================================
    TEMA OSCURO COMPLETO (DARK MODE VUE 3)
    ========================================== */
