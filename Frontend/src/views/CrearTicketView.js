@@ -37,8 +37,8 @@ export default {
       const formData = new FormData();
       formData.append('titulo', this.titulo);
       formData.append('descripcion', this.descripcion);
-      formData.append('categoriaId', this.categoriaId);
-      formData.append('ubicacionId', this.ubicacionId);
+      formData.append('categoriaId', parseInt(this.categoriaId));
+      formData.append('ubicacionId', parseInt(this.ubicacionId));
       if (this.detalleAula) formData.append('detalleAula', this.detalleAula);
       if (this.archivoEvidencia) formData.append('archivoEvidencia', this.archivoEvidencia);
 
