@@ -5,12 +5,33 @@ export default {
     vistaActual: String
   },
   emits: ['navigate', 'logout'],
+  data() {
+    return {
+      isDarkMode: localStorage.getItem('theme') === 'dark'
+    };
+  },
+  created() {
+    if (this.isDarkMode) {
+      document.body.classList.add('dark-mode');
+    }
+  },
+  methods: {
+    toggleDarkMode() {
+      this.isDarkMode = !this.isDarkMode;
+      if (this.isDarkMode) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('theme', 'light');
+      }
+    }
+  },
   template: `
     <nav class="navbar navbar-expand-lg navbar-dark navbar-tecnm sticky-top">
       <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" @click="$emit('navigate', 'home')" style="cursor: pointer;">
           <div class="bg-white p-1 rounded-2 d-flex align-items-center">
-            <img src="/Backend/API/wwwroot/img/logo-limpio.png" alt="TecNM Logo" height="36" onerror="this.style.display='none'">
             <span class="fw-bold text-dark fs-6 px-1">TecNM</span>
           </div>
           <div class="d-flex flex-column">
@@ -55,6 +76,11 @@ export default {
           </ul>
 
           <div class="d-flex align-items-center gap-3 ms-auto">
+            <!-- Botón Modo Oscuro -->
+            <button @click="toggleDarkMode" class="btn btn-outline-light btn-sm rounded-circle d-flex align-items-center justify-content-center p-0" style="width:36px; height:36px;" title="Alternar Modo Claro / Oscuro">
+              <i :class="isDarkMode ? 'bi bi-sun-fill text-warning' : 'bi bi-moon-stars-fill'"></i>
+            </button>
+
             <template v-if="usuario">
               <div class="dropdown">
                 <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center gap-2 p-0" type="button" data-bs-toggle="dropdown">

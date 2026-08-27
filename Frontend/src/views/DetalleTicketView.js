@@ -113,11 +113,14 @@ export default {
         <div>
           <div class="d-flex align-items-center gap-2 mb-1">
             <h3 class="fw-bold mb-0 text-dark">Ticket #{{ ticket.id }}</h3>
-            <span v-if="ticket.prioridad === 'Alta'" class="badge-priority-alta"><i class="bi bi-lightning-fill me-1"></i>Alta</span>
+            <span v-if="ticket.prioridad === 'Alta' || ticket.prioridad === 2" class="badge-priority-alta"><i class="bi bi-lightning-fill me-1"></i>Alta</span>
+            <span v-else-if="ticket.prioridad === 'Urgente' || ticket.prioridad === 3" class="badge bg-danger text-white rounded-pill px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Urgente</span>
             <span v-else class="badge-priority-normal">Normal</span>
-            <span v-if="ticket.estado === 'Abierto'" class="badge-status-abierto">Abierto</span>
-            <span v-else-if="ticket.estado === 'EnProgreso'" class="badge-status-progreso">En Progreso</span>
-            <span v-else-if="ticket.estado === 'Resuelto'" class="badge-status-resuelto">Resuelto</span>
+
+            <span v-if="ticket.estado === 'Abierto' || ticket.estado === 0" class="badge-status-abierto">Abierto</span>
+            <span v-else-if="ticket.estado === 'EnProgreso' || ticket.estado === 1" class="badge-status-progreso">En Progreso</span>
+            <span v-else-if="ticket.estado === 'Resuelto' || ticket.estado === 2" class="badge-status-resuelto">Resuelto</span>
+            <span v-else class="badge bg-secondary text-white rounded-pill px-2 py-1">Cancelado</span>
           </div>
           <p class="text-muted small mb-0">{{ ticket.titulo }}</p>
         </div>

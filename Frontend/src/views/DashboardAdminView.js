@@ -290,14 +290,15 @@ export default {
                     <span v-else class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Sin asignar</span>
                   </td>
                   <td>
-                    <span v-if="t.prioridad === 'Alta'" class="badge-priority-alta"><i class="bi bi-lightning-charge-fill me-1"></i>Alta</span>
-                    <span v-else-if="t.prioridad === 'Urgente'" class="badge bg-danger text-white rounded-pill px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Urgente</span>
+                    <span v-if="t.prioridad === 'Alta' || t.prioridad === 2" class="badge-priority-alta"><i class="bi bi-lightning-charge-fill me-1"></i>Alta</span>
+                    <span v-else-if="t.prioridad === 'Urgente' || t.prioridad === 3" class="badge bg-danger text-white rounded-pill px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Urgente</span>
+                    <span v-else-if="t.prioridad === 'Baja' || t.prioridad === 0" class="badge bg-secondary text-white rounded-pill px-2 py-1">Baja</span>
                     <span v-else class="badge-priority-normal">Normal</span>
                   </td>
                   <td>
-                    <span v-if="t.estado === 'Abierto'" class="badge-status-abierto">Abierto</span>
-                    <span v-else-if="t.estado === 'EnProgreso'" class="badge-status-progreso">En Progreso</span>
-                    <span v-else-if="t.estado === 'Resuelto'" class="badge-status-resuelto">Resuelto</span>
+                    <span v-if="t.estado === 'Abierto' || t.estado === 0" class="badge-status-abierto"><i class="bi bi-hourglass-split me-1"></i>Abierto</span>
+                    <span v-else-if="t.estado === 'EnProgreso' || t.estado === 1" class="badge-status-progreso"><i class="bi bi-gear-fill me-1"></i>En Progreso</span>
+                    <span v-else-if="t.estado === 'Resuelto' || t.estado === 2" class="badge-status-resuelto"><i class="bi bi-check2-all me-1"></i>Resuelto</span>
                     <span v-else class="badge bg-secondary text-white rounded-pill px-2 py-1">Cancelado</span>
                   </td>
                   <td class="text-end">
