@@ -336,7 +336,8 @@ public class TicketsController : ControllerBase
 
         var tickets = pagedResult.Items;
         var builder = new StringBuilder();
-        builder.AppendLine("Folio,Asunto / Problema,Categoría,Ubicación,Detalle de Aula,Nivel Prioridad,Estado Actual,Usuario Solicitante,Correo Institucional,Técnico Asignado,Fecha de Reporte,Fecha de Resolución,Calificación del Servicio,Comentario del Usuario");
+        builder.AppendLine("sep=;");
+        builder.AppendLine("Folio;Asunto / Problema;Categoría;Ubicación;Detalle de Aula;Nivel Prioridad;Estado Actual;Usuario Solicitante;Correo Institucional;Técnico Asignado;Fecha de Reporte;Fecha de Resolución;Calificación del Servicio;Comentario del Usuario");
 
         foreach (var t in tickets)
         {
@@ -350,7 +351,7 @@ public class TicketsController : ControllerBase
             var fechaReporte = t.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
             var fechaResolucion = t.FechaResolucion.HasValue ? t.FechaResolucion.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "Pendiente";
 
-            builder.AppendLine($"{t.Id},{tituloEscapado},{t.Categoria?.Nombre},{t.Ubicacion?.Nombre},{detalleAula},{t.Prioridad},{t.Estado},{solicitante},{emailSol},{tecnico},{fechaReporte},{fechaResolucion},{calif},{comentario}");
+            builder.AppendLine($"{t.Id};{tituloEscapado};{t.Categoria?.Nombre};{t.Ubicacion?.Nombre};{detalleAula};{t.Prioridad};{t.Estado};{solicitante};{emailSol};{tecnico};{fechaReporte};{fechaResolucion};{calif};{comentario}");
         }
 
         var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
