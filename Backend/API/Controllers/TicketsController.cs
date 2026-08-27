@@ -159,7 +159,11 @@ public class TicketsController : ControllerBase
         var (userId, _, userEmail) = ObtenerSesionUsuario();
         if (userId == null) return Unauthorized();
 
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+        {
+            var errores = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return BadRequest(new { mensaje = errores });
+        }
 
         string? rutaGuardada = null;
 

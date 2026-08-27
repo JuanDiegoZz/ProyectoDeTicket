@@ -41,11 +41,11 @@ public class RegistroViewModel
 public class CrearTicketViewModel
 {
     [Required(ErrorMessage = "El título o asunto del problema es requerido.")]
-    [StringLength(200, MinimumLength = 5, ErrorMessage = "El título debe tener entre 5 y 200 caracteres.")]
+    [StringLength(200, MinimumLength = 2, ErrorMessage = "El título debe tener al menos 2 caracteres.")]
     public string Titulo { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La descripción del problema es requerida.")]
-    [StringLength(2000, MinimumLength = 10, ErrorMessage = "Por favor explica con detalle la falla (mínimo 10 caracteres).")]
+    [StringLength(2000, MinimumLength = 2, ErrorMessage = "Por favor explica la falla (mínimo 2 caracteres).")]
     public string Descripcion { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Selecciona el tipo de falla / categoría.")]
