@@ -1,17 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --tecnm-blue: #1B396A;
-    --tecnm-dark: #10223E;
-    --tecnm-gold: #D4AF37;
-    --tecnm-gold-hover: #b8952b;
-    --tecnm-light: #F8FAFC;
-    --tecnm-card-bg: #FFFFFF;
-    --tecnm-text-main: #1E293B;
-    --tecnm-text-muted: #64748B;
+    /* Paleta Oficial TecNM (Modo Día / Fondos Claros) */
+    --tecnm-blue: #1B396A;        /* Pantone 294 C (C100 M85 Y30 K20 / R27 G57 B106) - Color Prioritario */
+    --tecnm-gray: #807E82;        /* Pantone Cool Gray 10 C (C0 M0 Y0 K60 / R128 G127 B131) */
+    --tecnm-black: #000000;       /* C0 M0 Y0 K100 (R0 G0 B0) */
+    --tecnm-light: #F8FAFC;       /* Fondo Claro Principal */
+    --tecnm-card-bg: #FFFFFF;     /* Tarjetas e Interfaces */
+    --tecnm-text-main: #000000;   /* Texto principal institucional */
+    --tecnm-text-muted: #807E82;  /* Texto secundario / gris */
     --tecnm-border: #E2E8F0;
-    --tecnm-accent-gradient: linear-gradient(135deg, #1B396A 0%, #0F2347 100%);
-    --tecnm-gold-gradient: linear-gradient(135deg, #E6C25B 0%, #D4AF37 100%);
+    --tecnm-accent-gradient: linear-gradient(135deg, #1B396A 0%, #10223E 100%);
+    --tecnm-gold: #D4AF37;
+    --tecnm-gold-gradient: linear-gradient(135deg, #1B396A 0%, #1B396A 100%);
 }
 
 /* ==========================================
