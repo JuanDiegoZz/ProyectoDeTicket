@@ -1,4 +1,4 @@
-@model IEnumerable<TicketsApp.Models.Ticket>
+@model IEnumerable<TicketsApp.Domain.Entities.Ticket>
 @{
     ViewData["Title"] = "Mis Solicitudes de Soporte";
 }
@@ -67,7 +67,7 @@
                                 }
                             </td>
                             <td>
-                                @if (t.Prioridad == TicketsApp.Models.PrioridadTicket.Alta)
+                                @if (t.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Alta)
                                 {
                                     <span class="badge-priority-alta"><i class="bi bi-lightning-fill me-1"></i>Alta</span>
                                 }
@@ -79,13 +79,13 @@
                             <td>
                                 @switch (t.Estado)
                                 {
-                                    case TicketsApp.Models.EstadoTicket.Abierto:
+                                    case TicketsApp.Domain.Enums.EstadoTicket.Abierto:
                                         <span class="badge-status-abierto"><i class="bi bi-hourglass-split me-1"></i>Abierto</span>
                                         break;
-                                    case TicketsApp.Models.EstadoTicket.EnProgreso:
+                                    case TicketsApp.Domain.Enums.EstadoTicket.EnProgreso:
                                         <span class="badge-status-progreso"><i class="bi bi-gear-fill me-1"></i>En Atención</span>
                                         break;
-                                    case TicketsApp.Models.EstadoTicket.Resuelto:
+                                    case TicketsApp.Domain.Enums.EstadoTicket.Resuelto:
                                         <span class="badge-status-resuelto"><i class="bi bi-check2-all me-1"></i>Resuelto</span>
                                         break;
                                 }

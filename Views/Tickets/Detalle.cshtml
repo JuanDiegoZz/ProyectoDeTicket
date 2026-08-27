@@ -1,4 +1,4 @@
-@model TicketsApp.Models.Ticket
+@model TicketsApp.Domain.Entities.Ticket
 @{
     ViewData["Title"] = $"Detalle del Ticket #{Model.Id}";
 }
@@ -20,7 +20,7 @@
 
     <!-- Acciones según estado y prioridad -->
     <div class="d-flex gap-2 align-items-center">
-        @if (Model.Prioridad == TicketsApp.Models.PrioridadTicket.Alta)
+        @if (Model.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Alta)
         {
             <span class="badge-priority-alta fs-6"><i class="bi bi-lightning-charge-fill me-1"></i>Prioridad Alta (Docente)</span>
         }
@@ -31,16 +31,16 @@
 
         @switch (Model.Estado)
         {
-            case TicketsApp.Models.EstadoTicket.Abierto:
+            case TicketsApp.Domain.Enums.EstadoTicket.Abierto:
                 <span class="badge-status-abierto fs-6"><i class="bi bi-hourglass-split me-1"></i>Abierto</span>
                 break;
-            case TicketsApp.Models.EstadoTicket.EnProgreso:
+            case TicketsApp.Domain.Enums.EstadoTicket.EnProgreso:
                 <span class="badge-status-progreso fs-6"><i class="bi bi-gear-fill me-1"></i>En Progreso</span>
                 break;
-            case TicketsApp.Models.EstadoTicket.Resuelto:
+            case TicketsApp.Domain.Enums.EstadoTicket.Resuelto:
                 <span class="badge-status-resuelto fs-6"><i class="bi bi-check2-all me-1"></i>Resuelto</span>
                 break;
-            case TicketsApp.Models.EstadoTicket.Cancelado:
+            case TicketsApp.Domain.Enums.EstadoTicket.Cancelado:
                 <span class="badge bg-danger text-white fs-6">Cancelado</span>
                 break;
         }
@@ -48,7 +48,7 @@
 </div>
 
 <!-- Módulo de Encuesta de Satisfacción (Si el ticket está Resuelto) -->
-@if (Model.Estado == TicketsApp.Models.EstadoTicket.Resuelto)
+@if (Model.Estado == TicketsApp.Domain.Enums.EstadoTicket.Resuelto)
 {
     @if (Model.CalificacionSatisfaccion.HasValue)
     {
@@ -206,25 +206,48 @@
         <!-- 1. Módulo de Reasignación de Técnicos (Exclusivo Administrador) -->
         @if (User.IsInRole("Administrador"))
         {
-            <div class="card card-tecnm border-0 mb-4 shadow-sm" style="border-top: 4px solid var(--tecnm-gold) !important;">
+            <div class="card card-tecnm border-0 shadow-sm mb-4">
                 <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-arrow-left-right me-2 text-warning"></i>Reasignar Técnico</h6>
+                    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-flag-fill text-warning me-2"></i>Gestión de Prioridad</h6>
                 </div>
-                <div class="card-body p-4">
+                <div class="card-body p-3">
+                    <form asp-action="CambiarPrioridad" method="post">
+                        <input type="hidden" name="ticketId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-secondary text-uppercase">Nivel de Prioridad</label>
+                            <select name="nuevaPrioridad" class="form-select form-select-custom">
+                                <option value="Baja" selected="@(Model.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Baja)">Baja</option>
+                                <option value="Normal" selected="@(Model.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Normal)">Normal (Alumno)</option>
+                                <option value="Alta" selected="@(Model.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Alta)">Alta (Docente)</option>
+                                <option value="Urgente" selected="@(Model.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Urgente)">Urgente</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-outline-warning w-100 fw-bold">
+                            <i class="bi bi-check2-circle me-1"></i>Actualizar Prioridad
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card card-tecnm border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-person-gear text-primary me-2"></i>Reasignación Técnica (Admin)</h6>
+                </div>
+                <div class="card-body p-3">
                     <form asp-action="ReasignarTecnico" method="post">
                         <input type="hidden" name="ticketId" value="@Model.Id" />
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-secondary text-uppercase">Técnico Destino</label>
-                            <select name="nuevoTecnicoId" class="form-select form-select-custom" asp-items="ViewBag.TecnicosDisponibles">
-                                <option value="">-- Liberar a Cola General --</option>
+                            <label class="form-label fw-semibold small text-secondary text-uppercase">Asignar a:</label>
+                            <select name="nuevoTecnicoId" asp-items="ViewBag.TecnicosDisponibles" class="form-select form-select-custom">
+                                <option value="">-- Dejar sin asignar (Cola general) --</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-secondary text-uppercase">Motivo de Reasignación</label>
-                            <input name="motivo" class="form-control form-control-custom" placeholder="Ej. Sobrecarga de trabajo, ausencia..." required />
+                            <label class="form-label fw-semibold small text-secondary text-uppercase">Motivo del cambio</label>
+                            <input type="text" name="motivo" class="form-control form-control-custom" placeholder="Ej. Sobrecarga de trabajo..." />
                         </div>
-                        <button type="submit" class="btn btn-tecnm-primary w-100 fw-bold">
-                            <i class="bi bi-check2 me-1"></i>Guardar Reasignación
+                        <button type="submit" class="btn btn-outline-primary w-100 fw-bold">
+                            <i class="bi bi-arrow-repeat me-1"></i>Reasignar Ticket
                         </button>
                     </form>
                 </div>
@@ -244,10 +267,10 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold small text-secondary text-uppercase">Nuevo Estado</label>
                             <select name="nuevoEstado" class="form-select form-select-custom">
-                                <option value="Abierto" selected="@(Model.Estado == TicketsApp.Models.EstadoTicket.Abierto)">Abierto</option>
-                                <option value="EnProgreso" selected="@(Model.Estado == TicketsApp.Models.EstadoTicket.EnProgreso)">En Progreso</option>
-                                <option value="Resuelto" selected="@(Model.Estado == TicketsApp.Models.EstadoTicket.Resuelto)">Resuelto</option>
-                                <option value="Cancelado" selected="@(Model.Estado == TicketsApp.Models.EstadoTicket.Cancelado)">Cancelado</option>
+                                <option value="Abierto" selected="@(Model.Estado == TicketsApp.Domain.Enums.EstadoTicket.Abierto)">Abierto</option>
+                                <option value="EnProgreso" selected="@(Model.Estado == TicketsApp.Domain.Enums.EstadoTicket.EnProgreso)">En Progreso</option>
+                                <option value="Resuelto" selected="@(Model.Estado == TicketsApp.Domain.Enums.EstadoTicket.Resuelto)">Resuelto</option>
+                                <option value="Cancelado" selected="@(Model.Estado == TicketsApp.Domain.Enums.EstadoTicket.Cancelado)">Cancelado</option>
                             </select>
                         </div>
                         <div class="mb-3">

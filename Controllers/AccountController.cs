@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using TicketsApp.Data;
-using TicketsApp.Models;
-using TicketsApp.Services;
-using TicketsApp.ViewModels;
+using TicketsApp.Application.Common.Interfaces;
+using TicketsApp.Application.ViewModels;
+using TicketsApp.Domain.Entities;
+using TicketsApp.Domain.Enums;
+using TicketsApp.Infrastructure.Data;
 
 namespace TicketsApp.Controllers;
 

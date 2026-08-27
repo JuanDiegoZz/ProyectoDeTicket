@@ -1,4 +1,4 @@
-@model IEnumerable<TicketsApp.Models.Ticket>
+@model IEnumerable<TicketsApp.Domain.Entities.Ticket>
 @{
     ViewData["Title"] = "Cola de Soporte Técnico";
 }
@@ -48,10 +48,10 @@
                     }
                     @foreach (var t in Model)
                     {
-                        <tr class="fila-tecnico @(t.Prioridad == TicketsApp.Models.PrioridadTicket.Alta ? "table-danger-subtle" : "")">
+                        <tr class="fila-tecnico @(t.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Alta ? "table-danger-subtle" : "")">
                             <td class="fw-bold text-primary">#@t.Id</td>
                             <td>
-                                @if (t.Prioridad == TicketsApp.Models.PrioridadTicket.Alta)
+                                @if (t.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Alta)
                                 {
                                     <span class="badge-priority-alta"><i class="bi bi-lightning-charge-fill me-1"></i>Alta (Docente)</span>
                                 }
@@ -84,13 +84,13 @@
                             <td>
                                 @switch (t.Estado)
                                 {
-                                    case TicketsApp.Models.EstadoTicket.Abierto:
+                                    case TicketsApp.Domain.Enums.EstadoTicket.Abierto:
                                         <span class="badge-status-abierto">Abierto</span>
                                         break;
-                                    case TicketsApp.Models.EstadoTicket.EnProgreso:
+                                    case TicketsApp.Domain.Enums.EstadoTicket.EnProgreso:
                                         <span class="badge-status-progreso">En Progreso</span>
                                         break;
-                                    case TicketsApp.Models.EstadoTicket.Resuelto:
+                                    case TicketsApp.Domain.Enums.EstadoTicket.Resuelto:
                                         <span class="badge-status-resuelto">Resuelto</span>
                                         break;
                                 }

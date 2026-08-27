@@ -1,0 +1,158 @@
+@model IEnumerable<TicketsApp.Domain.Entities.Categoria>
+@{
+    ViewData["Title"] = "Gestión de Categorías de Incidencias";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-white p-2 rounded-3 shadow-sm border">
+            <img src="~/img/logo-limpio.png?v=@DateTime.UtcNow.Ticks" alt="TecNM" height="42" />
+        </div>
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Catálogo de Categorías</h3>
+            <p class="text-muted mb-0 small">Administración dinámica de tipos de fallas y servicios técnicos</p>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-tecnm-primary rounded-3" data-bs-toggle="modal" data-bs-target="#modalNuevaCategoria">
+            <i class="bi bi-plus-lg me-1"></i>Nueva Categoría
+        </button>
+        <a asp-controller="Catalogos" asp-action="Ubicaciones" class="btn btn-outline-primary rounded-3 fw-semibold">
+            <i class="bi bi-geo-alt-fill me-1"></i>Ver Ubicaciones
+        </a>
+        <a asp-controller="Tickets" asp-action="Index" class="btn btn-outline-secondary rounded-3">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+</div>
+
+<div class="card card-tecnm border-0 shadow-sm overflow-hidden">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-tags-fill text-primary me-2"></i>Categorías Registradas</h6>
+        <span class="badge bg-light text-secondary border">Total: @Model.Count()</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-tecnm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Nombre de Categoría</th>
+                        <th>Descripción</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No hay categorías registradas en el catálogo.</td>
+                        </tr>
+                    }
+                    @foreach (var cat in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">#@cat.Id</td>
+                            <td class="fw-bold text-dark">@cat.Nombre</td>
+                            <td class="text-muted small">@(cat.Descripcion ?? "Sin descripción")</td>
+                            <td class="text-center">
+                                @if (cat.Activo)
+                                {
+                                    <span class="badge-status-resuelto"><i class="bi bi-check-circle-fill me-1"></i>Activa</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary text-white rounded-pill px-3 py-1">Inactiva (Baja)</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-primary rounded-2 me-1" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalEditar_@cat.Id">
+                                    <i class="bi bi-pencil-fill me-1"></i>Editar
+                                </button>
+                                <form asp-action="AlternarEstadoCategoria" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@cat.Id" />
+                                    @if (cat.Activo)
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-2" onclick="return confirm('¿Desactivar esta categoría del catálogo?');">
+                                            <i class="bi bi-slash-circle me-1"></i>Desactivar
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-outline-success rounded-2">
+                                            <i class="bi bi-check-lg me-1"></i>Activar
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+
+                        <!-- Modal Editar Categoría -->
+                        <div class="modal fade" id="modalEditar_@cat.Id" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                    <div class="modal-header bg-tecnm-blue text-white p-3" style="background: var(--tecnm-accent-gradient);">
+                                        <h6 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2 text-warning"></i>Editar Categoría #@cat.Id</h6>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form asp-action="EditarCategoria" method="post">
+                                        <div class="modal-body p-4">
+                                            <input type="hidden" name="Id" value="@cat.Id" />
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold small text-secondary text-uppercase">Nombre</label>
+                                                <input type="text" name="Nombre" value="@cat.Nombre" class="form-control form-control-custom" required />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold small text-secondary text-uppercase">Descripción</label>
+                                                <textarea name="Descripcion" class="form-control form-control-custom" rows="3">@cat.Descripcion</textarea>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="Activo" value="true" @(cat.Activo ? "checked" : "") id="checkActivo_@cat.Id" />
+                                                <label class="form-check-label fw-semibold" for="checkActivo_@cat.Id">Categoría Habilitada</label>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer bg-light p-3">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-tecnm-primary btn-sm rounded-pill px-4">Guardar Cambios</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Nueva Categoría -->
+<div class="modal fade" id="modalNuevaCategoria" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-tecnm-blue text-white p-3" style="background: var(--tecnm-accent-gradient);">
+                <h6 class="modal-title fw-bold"><i class="bi bi-tag-fill me-2 text-warning"></i>Nueva Categoría de Soporte</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CrearCategoria" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary text-uppercase">Nombre de la Categoría</label>
+                        <input type="text" name="Nombre" class="form-control form-control-custom" placeholder="Ej. Impresoras y Escáneres" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary text-uppercase">Descripción Detallada</label>
+                        <textarea name="Descripcion" class="form-control form-control-custom" rows="3" placeholder="Describe los tipos de problemas que abarca esta categoría..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-tecnm-primary btn-sm rounded-pill px-4">Crear Categoría</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

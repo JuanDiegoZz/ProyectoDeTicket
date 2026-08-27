@@ -1,0 +1,150 @@
+@model IEnumerable<TicketsApp.Domain.Entities.Ubicacion>
+@{
+    ViewData["Title"] = "Gestión de Ubicaciones / Edificios";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-white p-2 rounded-3 shadow-sm border">
+            <img src="~/img/logo-limpio.png?v=@DateTime.UtcNow.Ticks" alt="TecNM" height="42" />
+        </div>
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Catálogo de Ubicaciones</h3>
+            <p class="text-muted mb-0 small">Administración dinámica de edificios, aulas e instalaciones</p>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-tecnm-primary rounded-3" data-bs-toggle="modal" data-bs-target="#modalNuevaUbicacion">
+            <i class="bi bi-plus-lg me-1"></i>Nueva Ubicación
+        </button>
+        <a asp-controller="Catalogos" asp-action="Categorias" class="btn btn-outline-primary rounded-3 fw-semibold">
+            <i class="bi bi-tags-fill me-1"></i>Ver Categorías
+        </a>
+        <a asp-controller="Tickets" asp-action="Index" class="btn btn-outline-secondary rounded-3">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+</div>
+
+<div class="card card-tecnm border-0 shadow-sm overflow-hidden">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Ubicaciones del Campus Registradas</h6>
+        <span class="badge bg-light text-secondary border">Total: @Model.Count()</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-tecnm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Nombre del Edificio / Área</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No hay ubicaciones registradas en el catálogo.</td>
+                        </tr>
+                    }
+                    @foreach (var ub in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">#@ub.Id</td>
+                            <td class="fw-bold text-dark">
+                                <i class="bi bi-building me-2 text-primary"></i>@ub.Nombre
+                            </td>
+                            <td class="text-center">
+                                @if (ub.Activo)
+                                {
+                                    <span class="badge-status-resuelto"><i class="bi bi-check-circle-fill me-1"></i>Habilitada</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary text-white rounded-pill px-3 py-1">Inactiva (Baja)</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-primary rounded-2 me-1" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalEditar_@ub.Id">
+                                    <i class="bi bi-pencil-fill me-1"></i>Editar
+                                </button>
+                                <form asp-action="AlternarEstadoUbicacion" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@ub.Id" />
+                                    @if (ub.Activo)
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-2" onclick="return confirm('¿Desactivar esta ubicación del catálogo?');">
+                                            <i class="bi bi-slash-circle me-1"></i>Desactivar
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-outline-success rounded-2">
+                                            <i class="bi bi-check-lg me-1"></i>Activar
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+
+                        <!-- Modal Editar Ubicación -->
+                        <div class="modal fade" id="modalEditar_@ub.Id" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                    <div class="modal-header bg-tecnm-blue text-white p-3" style="background: var(--tecnm-accent-gradient);">
+                                        <h6 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2 text-warning"></i>Editar Ubicación #@ub.Id</h6>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form asp-action="EditarUbicacion" method="post">
+                                        <div class="modal-body p-4">
+                                            <input type="hidden" name="Id" value="@ub.Id" />
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold small text-secondary text-uppercase">Nombre del Edificio / Área</label>
+                                                <input type="text" name="Nombre" value="@ub.Nombre" class="form-control form-control-custom" required />
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="Activo" value="true" @(ub.Activo ? "checked" : "") id="checkActivoUb_@ub.Id" />
+                                                <label class="form-check-label fw-semibold" for="checkActivoUb_@ub.Id">Ubicación Habilitada</label>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer bg-light p-3">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-tecnm-primary btn-sm rounded-pill px-4">Guardar Cambios</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Nueva Ubicación -->
+<div class="modal fade" id="modalNuevaUbicacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-tecnm-blue text-white p-3" style="background: var(--tecnm-accent-gradient);">
+                <h6 class="modal-title fw-bold"><i class="bi bi-geo-alt-fill me-2 text-warning"></i>Nueva Ubicación del Campus</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CrearUbicacion" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary text-uppercase">Nombre del Edificio o Instalación</label>
+                        <input type="text" name="Nombre" class="form-control form-control-custom" placeholder="Ej. Biblioteca Central / Edificio D" required />
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-tecnm-primary btn-sm rounded-pill px-4">Crear Ubicación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

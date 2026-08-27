@@ -1,13 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
-using TicketsApp.Models;
+using TicketsApp.Application.Common.Models;
+using TicketsApp.Domain.Entities;
+using TicketsApp.Domain.Enums;
 
-namespace TicketsApp.ViewModels;
+namespace TicketsApp.Application.ViewModels;
 
 public class LoginViewModel
 {
     [Required(ErrorMessage = "El correo institucional es obligatorio.")]
-    [EmailAddress(ErrorMessage = "Formato de correo no válido.")]
+    [EmailAddress(ErrorMessage = "Ingresa un correo electrónico válido.")]
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La contraseña es obligatoria.")]
@@ -17,50 +19,44 @@ public class LoginViewModel
 
 public class RegistroViewModel
 {
-    [Required(ErrorMessage = "El nombre completo es requerido.")]
-    [Display(Name = "Nombre Completo")]
+    [Required(ErrorMessage = "El nombre completo es obligatorio.")]
+    [StringLength(150, MinimumLength = 3, ErrorMessage = "El nombre debe tener entre 3 y 150 caracteres.")]
     public string NombreCompleto { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "El correo institucional es requerido.")]
-    [EmailAddress(ErrorMessage = "Formato de correo no válido.")]
-    [Display(Name = "Correo Institucional (@monclova.tecnm.mx)")]
+    [Required(ErrorMessage = "El correo institucional es obligatorio.")]
+    [EmailAddress(ErrorMessage = "Ingresa un correo válido.")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "La contraseña es requerida.")]
+    [Required(ErrorMessage = "La contraseña es obligatoria.")]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres.")]
     [DataType(DataType.Password)]
-    [Display(Name = "Contraseña")]
     public string Password { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "Debes confirmar tu contraseña.")]
     [DataType(DataType.Password)]
-    [Display(Name = "Confirmar Contraseña")]
     [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }
 
 public class CrearTicketViewModel
 {
-    [Required(ErrorMessage = "El asunto o título es obligatorio.")]
-    [StringLength(150, ErrorMessage = "El título no puede exceder los 150 caracteres.")]
-    [Display(Name = "Título del Problema")]
+    [Required(ErrorMessage = "El título o asunto del problema es requerido.")]
+    [StringLength(200, MinimumLength = 5, ErrorMessage = "El título debe tener entre 5 y 200 caracteres.")]
     public string Titulo { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Describe el problema detalladamente.")]
-    [Display(Name = "Descripción Detallada")]
+    [Required(ErrorMessage = "La descripción del problema es requerida.")]
+    [StringLength(2000, MinimumLength = 10, ErrorMessage = "Por favor explica con detalle la falla (mínimo 10 caracteres).")]
     public string Descripcion { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Selecciona una categoría.")]
-    [Display(Name = "Categoría")]
+    [Required(ErrorMessage = "Selecciona el tipo de falla / categoría.")]
     public int CategoriaId { get; set; }
 
-    [Required(ErrorMessage = "Selecciona una ubicación del campus.")]
-    [Display(Name = "Edificio / Ubicación")]
+    [Required(ErrorMessage = "Selecciona la ubicación / edificio.")]
     public int UbicacionId { get; set; }
 
-    [Display(Name = "Detalle específico (Ej. Aula 204, Cubículo 3)")]
+    [StringLength(150, ErrorMessage = "El detalle de aula no debe superar 150 caracteres.")]
     public string? DetalleAula { get; set; }
 
-    [Display(Name = "Evidencia fotográfica o captura (Opcional)")]
     public IFormFile? ArchivoEvidencia { get; set; }
 }
 
@@ -75,7 +71,17 @@ public class DashboardAdminViewModel
     public List<MetricaCategoriaViewModel> FallasPorCategoria { get; set; } = new();
     public List<MetricaUsuarioViewModel> TopSolicitantes { get; set; } = new();
     public List<MetricaTecnicoViewModel> EficienciaTecnicos { get; set; } = new();
-    public List<Ticket> UltimosTickets { get; set; } = new();
+    
+    // Tabla Paginada y Filtrada
+    public PagedResult<Ticket> TicketsPaginados { get; set; } = new();
+
+    // Filtros activos
+    public string? Busqueda { get; set; }
+    public EstadoTicket? EstadoFiltro { get; set; }
+    public PrioridadTicket? PrioridadFiltro { get; set; }
+    public int? CategoriaFiltro { get; set; }
+    public int? UbicacionFiltro { get; set; }
+    public string? OrdenActual { get; set; }
 }
 
 public class MetricaAreaViewModel

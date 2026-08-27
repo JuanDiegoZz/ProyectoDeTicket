@@ -3,25 +3,32 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
-using TicketsApp.Data;
-using TicketsApp.Models;
-using TicketsApp.Services;
-using TicketsApp.ViewModels;
+using TicketsApp.Application.Common.Interfaces;
+using TicketsApp.Application.ViewModels;
+using TicketsApp.Domain.Entities;
+using TicketsApp.Domain.Enums;
+using TicketsApp.Infrastructure.Data;
 
 namespace TicketsApp.Controllers;
 
 public class TicketsController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly ITicketService _ticketService;
+    private readonly ICatalogoService _catalogoService;
     private readonly IWebHostEnvironment _environment;
     private readonly IEmailClassifierService _emailClassifier;
 
     public TicketsController(
         ApplicationDbContext context,
+        ITicketService ticketService,
+        ICatalogoService catalogoService,
         IWebHostEnvironment environment,
         IEmailClassifierService emailClassifier)
     {
         _context = context;
+        _ticketService = ticketService;
+        _catalogoService = catalogoService;
         _environment = environment;
         _emailClassifier = emailClassifier;
     }
@@ -40,7 +47,15 @@ public class TicketsController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(
+        string? busqueda = null,
+        EstadoTicket? estado = null,
+        PrioridadTicket? prioridad = null,
+        int? categoriaId = null,
+        int? ubicacionId = null,
+        int pagina = 1,
+        int tamanoPagina = 10,
+        string? orden = null)
     {
         var (userId, userRol, userEmail) = ObtenerSesionUsuario();
         if (userId == null)
@@ -51,9 +66,14 @@ public class TicketsController : Controller
         ViewBag.UserRol = userRol;
         ViewBag.UserId = userId;
 
-        // 1. ADMINISTRADOR (Dashboard y todos los tickets con métricas)
+        // 1. ADMINISTRADOR (Dashboard analítico con tabla paginada y filtrada desde servidor)
         if (userRol == RolUsuario.Administrador)
         {
+            var pagedTickets = await _ticketService.ObtenerTicketsPaginadosAsync(
+                busqueda, estado, prioridad, categoriaId, ubicacionId, pagina, tamanoPagina, orden);
+
+            await CargarCatalogosViewBag();
+
             var adminVm = new DashboardAdminViewModel
             {
                 TotalTickets = await _context.Tickets.CountAsync(),
@@ -96,43 +116,27 @@ public class TicketsController : Controller
                     })
                     .ToListAsync(),
 
-                UltimosTickets = await _context.Tickets
-                    .Include(t => t.Solicitante)
-                    .Include(t => t.Categoria)
-                    .Include(t => t.Ubicacion)
-                    .Include(t => t.TecnicoAsignado)
-                    .OrderByDescending(t => t.FechaCreacion)
-                    .ToListAsync()
+                TicketsPaginados = pagedTickets,
+                Busqueda = busqueda,
+                EstadoFiltro = estado,
+                PrioridadFiltro = prioridad,
+                CategoriaFiltro = categoriaId,
+                UbicacionFiltro = ubicacionId,
+                OrdenActual = orden
             };
 
             return View("DashboardAdmin", adminVm);
         }
 
-        // 2. TÉCNICO (Tickets asignados a él o libres sin asignar)
+        // 2. TÉCNICO (Tickets asignados o libres)
         if (userRol == RolUsuario.Tecnico)
         {
-            var ticketsTecnico = await _context.Tickets
-                .Include(t => t.Solicitante)
-                .Include(t => t.Categoria)
-                .Include(t => t.Ubicacion)
-                .Include(t => t.TecnicoAsignado)
-                .Where(t => t.TecnicoAsignadoId == userId || t.TecnicoAsignadoId == null)
-                .OrderByDescending(t => t.Prioridad == PrioridadTicket.Alta)
-                .ThenByDescending(t => t.FechaCreacion)
-                .ToListAsync();
-
+            var ticketsTecnico = await _ticketService.ObtenerTicketsTecnicoAsync(userId.Value);
             return View("IndexTecnico", ticketsTecnico);
         }
 
         // 3. SOLICITANTE
-        var ticketsSolicitante = await _context.Tickets
-            .Include(t => t.Categoria)
-            .Include(t => t.Ubicacion)
-            .Include(t => t.TecnicoAsignado)
-            .Where(t => t.SolicitanteId == userId)
-            .OrderByDescending(t => t.FechaCreacion)
-            .ToListAsync();
-
+        var ticketsSolicitante = await _ticketService.ObtenerTicketsSolicitanteAsync(userId.Value);
         return View("IndexSolicitante", ticketsSolicitante);
     }
 
@@ -145,15 +149,7 @@ public class TicketsController : Controller
             return RedirectToAction("Login", "Account");
         }
 
-        var ticket = await _context.Tickets
-            .Include(t => t.Solicitante)
-            .Include(t => t.TecnicoAsignado)
-            .Include(t => t.Categoria)
-            .Include(t => t.Ubicacion)
-            .Include(t => t.Notas)
-                .ThenInclude(n => n.Usuario)
-            .FirstOrDefaultAsync(t => t.Id == id);
-
+        var ticket = await _ticketService.ObtenerPorIdAsync(id);
         if (ticket == null)
         {
             return NotFound();
@@ -164,7 +160,6 @@ public class TicketsController : Controller
             return Forbid();
         }
 
-        // Cargar lista de técnicos activos para reasignación (solo visible para Administradores)
         if (userRol == RolUsuario.Administrador)
         {
             ViewBag.TecnicosDisponibles = new SelectList(
@@ -254,8 +249,7 @@ public class TicketsController : Controller
             FechaCreacion = DateTime.UtcNow
         };
 
-        _context.Tickets.Add(ticket);
-        await _context.SaveChangesAsync();
+        await _ticketService.CrearTicketAsync(ticket);
 
         TempData["SuccessMessage"] = $"¡Ticket #{ticket.Id} generado con éxito! Prioridad asignada: {prioridadAsignada}.";
         return RedirectToAction(nameof(Index));
@@ -271,44 +265,13 @@ public class TicketsController : Controller
             return Forbid();
         }
 
-        var ticket = await _context.Tickets.FindAsync(ticketId);
-        if (ticket == null)
-        {
-            return NotFound();
-        }
+        var resultado = await _ticketService.CambiarEstadoAsync(ticketId, nuevoEstado, userId.Value, nota);
+        if (!resultado) return NotFound();
 
-        if (ticket.TecnicoAsignadoId == null && userRol == RolUsuario.Tecnico)
-        {
-            ticket.TecnicoAsignadoId = userId.Value;
-        }
-
-        ticket.Estado = nuevoEstado;
-        ticket.FechaActualizacion = DateTime.UtcNow;
-
-        if (nuevoEstado == EstadoTicket.Resuelto)
-        {
-            ticket.FechaResolucion = DateTime.UtcNow;
-        }
-
-        if (!string.IsNullOrWhiteSpace(nota))
-        {
-            var nuevaNota = new NotaTicket
-            {
-                TicketId = ticket.Id,
-                UsuarioId = userId.Value,
-                Mensaje = $"[Cambio a {nuevoEstado}]: {nota.Trim()}",
-                FechaCreacion = DateTime.UtcNow
-            };
-            _context.NotasTicket.Add(nuevaNota);
-        }
-
-        await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = $"Ticket #{ticketId} actualizado a estado '{nuevoEstado}'.";
-
         return RedirectToAction("Detalle", new { id = ticketId });
     }
 
-    // POST: /Tickets/ReasignarTecnico (Exclusivo Administrador)
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ReasignarTecnico(int ticketId, int? nuevoTecnicoId, string? motivo)
@@ -319,41 +282,30 @@ public class TicketsController : Controller
             return Forbid();
         }
 
-        var ticket = await _context.Tickets.FindAsync(ticketId);
-        if (ticket == null)
-        {
-            return NotFound();
-        }
+        var resultado = await _ticketService.ReasignarTecnicoAsync(ticketId, nuevoTecnicoId, userId!.Value, motivo);
+        if (!resultado) return NotFound();
 
-        Usuario? nuevoTecnico = null;
-        if (nuevoTecnicoId.HasValue)
-        {
-            nuevoTecnico = await _context.Usuarios.FindAsync(nuevoTecnicoId.Value);
-        }
-
-        ticket.TecnicoAsignadoId = nuevoTecnicoId;
-        ticket.FechaActualizacion = DateTime.UtcNow;
-
-        var mensajeNota = nuevoTecnico != null
-            ? $"[Reasignación Administrativa]: Asignado a '{nuevoTecnico.NombreCompleto}'. Motivo: {motivo ?? "Sin motivo especificado"}."
-            : $"[Reasignación Administrativa]: Ticket liberado a la cola general. Motivo: {motivo ?? "Sin motivo especificado"}.";
-
-        var nuevaNota = new NotaTicket
-        {
-            TicketId = ticket.Id,
-            UsuarioId = userId!.Value,
-            Mensaje = mensajeNota,
-            FechaCreacion = DateTime.UtcNow
-        };
-        _context.NotasTicket.Add(nuevaNota);
-
-        await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = $"Ticket #{ticketId} reasignado correctamente.";
-
         return RedirectToAction("Detalle", new { id = ticketId });
     }
 
-    // POST: /Tickets/CalificarTicket (Permite al Solicitante evaluar la atención)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CambiarPrioridad(int ticketId, PrioridadTicket nuevaPrioridad)
+    {
+        var (userId, userRol, _) = ObtenerSesionUsuario();
+        if (userRol != RolUsuario.Administrador)
+        {
+            return Forbid();
+        }
+
+        var resultado = await _ticketService.ActualizarPrioridadAsync(ticketId, nuevaPrioridad, userId!.Value);
+        if (!resultado) return NotFound();
+
+        TempData["SuccessMessage"] = $"Prioridad del Ticket #{ticketId} cambiada a '{nuevaPrioridad}'.";
+        return RedirectToAction("Detalle", new { id = ticketId });
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CalificarTicket(int ticketId, int estrellas, string? comentario)
@@ -364,22 +316,13 @@ public class TicketsController : Controller
             return RedirectToAction("Login", "Account");
         }
 
-        var ticket = await _context.Tickets.FindAsync(ticketId);
-        if (ticket == null || ticket.SolicitanteId != userId)
-        {
-            return Forbid();
-        }
+        var resultado = await _ticketService.CalificarTicketAsync(ticketId, estrellas, comentario, userId.Value);
+        if (!resultado) return Forbid();
 
-        ticket.CalificacionSatisfaccion = Math.Clamp(estrellas, 1, 5);
-        ticket.ComentarioSatisfaccion = comentario?.Trim();
-
-        await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = "¡Gracias por calificar la atención brindada!";
-
         return RedirectToAction("Detalle", new { id = ticketId });
     }
 
-    // POST: /Tickets/AgregarNota
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AgregarNota(int ticketId, string mensaje)
@@ -390,41 +333,25 @@ public class TicketsController : Controller
             return RedirectToAction("Login", "Account");
         }
 
-        if (string.IsNullOrWhiteSpace(mensaje))
+        var resultado = await _ticketService.AgregarNotaAsync(ticketId, userId.Value, mensaje);
+        if (!resultado)
         {
+            TempData["ErrorMessage"] = "No se pudo agregar la nota.";
             return RedirectToAction("Detalle", new { id = ticketId });
         }
-
-        var ticket = await _context.Tickets.FindAsync(ticketId);
-        if (ticket == null)
-        {
-            return NotFound();
-        }
-
-        if (userRol == RolUsuario.Solicitante && ticket.SolicitanteId != userId)
-        {
-            return Forbid();
-        }
-
-        var nuevaNota = new NotaTicket
-        {
-            TicketId = ticket.Id,
-            UsuarioId = userId.Value,
-            Mensaje = mensaje.Trim(),
-            FechaCreacion = DateTime.UtcNow
-        };
-
-        _context.NotasTicket.Add(nuevaNota);
-        ticket.FechaActualizacion = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
 
         TempData["SuccessMessage"] = "Nota agregada correctamente.";
         return RedirectToAction("Detalle", new { id = ticketId });
     }
 
-    // GET: /Tickets/ExportarCsv (Exportación completa de reportes en Excel/CSV compatible)
     [HttpGet]
-    public async Task<IActionResult> ExportarCsv()
+    public async Task<IActionResult> ExportarCsv(
+        string? busqueda = null,
+        EstadoTicket? estado = null,
+        PrioridadTicket? prioridad = null,
+        int? categoriaId = null,
+        int? ubicacionId = null,
+        string? orden = null)
     {
         var (userId, userRol, _) = ObtenerSesionUsuario();
         if (userRol != RolUsuario.Administrador)
@@ -432,45 +359,41 @@ public class TicketsController : Controller
             return Forbid();
         }
 
-        var tickets = await _context.Tickets
-            .Include(t => t.Solicitante)
-            .Include(t => t.TecnicoAsignado)
-            .Include(t => t.Categoria)
-            .Include(t => t.Ubicacion)
-            .OrderByDescending(t => t.FechaCreacion)
-            .ToListAsync();
+        // Exportación que respeta con exactitud todos los filtros aplicados en la consulta
+        var pagedResult = await _ticketService.ObtenerTicketsPaginadosAsync(
+            busqueda, estado, prioridad, categoriaId, ubicacionId, pagina: 1, tamanoPagina: 100000, orden);
+
+        var tickets = pagedResult.Items;
 
         var builder = new StringBuilder();
-        // Encabezados con BOM para correcta codificación en Microsoft Excel
-        builder.AppendLine("Folio,Titulo,Categoria,Ubicacion,Detalle Aula,Prioridad,Estado,Solicitante,Email Solicitante,Tecnico Asignado,Fecha Creacion,Fecha Resolucion,Calificacion");
+        // Encabezados en español con codificación UTF-8 BOM para apertura perfecta en Excel
+        builder.AppendLine("Folio,Asunto / Problema,Categoría,Ubicación,Detalle de Aula,Nivel Prioridad,Estado Actual,Usuario Solicitante,Correo Institucional,Técnico Asignado,Fecha de Reporte,Fecha de Resolución,Calificación del Servicio,Comentario del Usuario");
 
         foreach (var t in tickets)
         {
             var tituloEscapado = $"\"{t.Titulo.Replace("\"", "\"\"")}\"";
+            var detalleAula = !string.IsNullOrEmpty(t.DetalleAula) ? $"\"{t.DetalleAula.Replace("\"", "\"\"")}\"" : "N/A";
             var solicitante = $"\"{t.Solicitante?.NombreCompleto.Replace("\"", "\"\"")}\"";
+            var emailSol = t.Solicitante?.Email ?? "N/A";
             var tecnico = t.TecnicoAsignado != null ? $"\"{t.TecnicoAsignado.NombreCompleto.Replace("\"", "\"\"")}\"" : "Sin Asignar";
-            var calif = t.CalificacionSatisfaccion.HasValue ? $"{t.CalificacionSatisfaccion} Estrellas" : "Sin Calificar";
-            var fechaRes = t.FechaResolucion.HasValue ? t.FechaResolucion.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "N/A";
+            var calif = t.CalificacionSatisfaccion.HasValue ? $"{t.CalificacionSatisfaccion} de 5 Estrellas" : "Sin Evaluar";
+            var comentario = !string.IsNullOrEmpty(t.ComentarioSatisfaccion) ? $"\"{t.ComentarioSatisfaccion.Replace("\"", "\"\"")}\"" : "Sin comentarios";
+            var fechaReporte = t.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+            var fechaResolucion = t.FechaResolucion.HasValue ? t.FechaResolucion.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "Pendiente";
 
-            builder.AppendLine($"{t.Id},{tituloEscapado},{t.Categoria?.Nombre},{t.Ubicacion?.Nombre},\"{t.DetalleAula}\",{t.Prioridad},{t.Estado},{solicitante},{t.Solicitante?.Email},{tecnico},{t.FechaCreacion.ToLocalTime():yyyy-MM-dd HH:mm},{fechaRes},{calif}");
+            builder.AppendLine($"{t.Id},{tituloEscapado},{t.Categoria?.Nombre},{t.Ubicacion?.Nombre},{detalleAula},{t.Prioridad},{t.Estado},{solicitante},{emailSol},{tecnico},{fechaReporte},{fechaResolucion},{calif},{comentario}");
         }
 
         var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
-        return File(bytes, "text/csv", $"Reporte_Tickets_TecNM_{DateTime.UtcNow:yyyyMMdd_HHmm}.csv");
+        return File(bytes, "text/csv; charset=utf-8", $"Reporte_Tickets_TecNM_Filtrado_{DateTime.UtcNow:yyyyMMdd_HHmm}.csv");
     }
 
     private async Task CargarCatalogosViewBag()
     {
-        ViewBag.Categorias = new SelectList(
-            await _context.Categorias.Where(c => c.Activo).ToListAsync(),
-            "Id",
-            "Nombre"
-        );
+        var categorias = await _catalogoService.ObtenerCategoriasAsync(soloActivas: true);
+        var ubicaciones = await _catalogoService.ObtenerUbicacionesAsync(soloActivas: true);
 
-        ViewBag.Ubicaciones = new SelectList(
-            await _context.Ubicaciones.Where(u => u.Activo).ToListAsync(),
-            "Id",
-            "Nombre"
-        );
+        ViewBag.Categorias = new SelectList(categorias, "Id", "Nombre");
+        ViewBag.Ubicaciones = new SelectList(ubicaciones, "Id", "Nombre");
     }
 }

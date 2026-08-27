@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using TicketsApp.Data;
-using TicketsApp.Models;
-using TicketsApp.Services;
+using TicketsApp.Application.Common.Interfaces;
+using TicketsApp.Domain.Entities;
+using TicketsApp.Domain.Enums;
+using TicketsApp.Infrastructure.Data;
+using TicketsApp.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configurar DbContext: Soporta PostgreSQL (Producción / Docker) y SQLite (Desarrollo local sin contenedor)
+// 1. Configurar DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Data Source=tickets_local.db";
 
@@ -22,8 +24,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }
 });
 
-// 2. Registrar Servicios de Negocio
+// 2. Inyección de Dependencias por Módulos
 builder.Services.AddScoped<IEmailClassifierService, EmailClassifierService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddScoped<ICatalogoService, CatalogoService>();
 
 // 3. Configurar Autenticación con Cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -41,7 +45,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Inicialización y Sembrado de Datos de Prueba (Seed Data)
+// Inicialización y Sembrado de Datos de Prueba
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -73,7 +77,7 @@ using (var scope = app.Services.CreateScope())
             context.SaveChanges();
         }
 
-        // 2. Sembrar Técnicos de prueba si no existen
+        // 2. Sembrar Técnicos de prueba
         var tec1 = context.Usuarios.FirstOrDefault(u => u.Email == "carlos.tecnico@monclova.tecnm.mx");
         if (tec1 == null)
         {
@@ -173,7 +177,7 @@ using (var scope = app.Services.CreateScope())
 
         context.SaveChanges();
 
-        // 4. Sembrar Tickets de Prueba con diversos estados y ubicaciones si la base de datos está vacía
+        // 4. Sembrar Tickets de Prueba
         if (!context.Tickets.Any())
         {
             var catHardware = context.Categorias.First(c => c.Nombre == "Hardware").Id;

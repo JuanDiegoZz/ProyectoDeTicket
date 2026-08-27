@@ -1,13 +1,13 @@
-@model TicketsApp.ViewModels.DashboardAdminViewModel
+@model TicketsApp.Application.ViewModels.DashboardAdminViewModel
 @{
-    ViewData["Title"] = "Dashboard Administrador";
+    ViewData["Title"] = "Panel de Control y Supervisión TI";
 }
 
 <!-- Encabezado del Dashboard -->
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div class="d-flex align-items-center gap-3">
         <div class="bg-white p-2 rounded-3 shadow-sm border">
-            <img src="~/img/logo-vertical.png" alt="TecNM" height="48" />
+            <img src="~/img/logo-limpio.png?v=@DateTime.UtcNow.Ticks" alt="TecNM" height="48" />
         </div>
         <div>
             <h3 class="fw-bold mb-0 text-dark">Panel de Control TI</h3>
@@ -15,11 +15,20 @@
         </div>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <a asp-action="ExportarCsv" class="btn btn-outline-success rounded-3 fw-semibold">
-            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar a Excel (CSV)
+        <a asp-action="ExportarCsv" 
+           asp-route-busqueda="@Model.Busqueda"
+           asp-route-estado="@Model.EstadoFiltro"
+           asp-route-prioridad="@Model.PrioridadFiltro"
+           asp-route-categoriaId="@Model.CategoriaFiltro"
+           asp-route-ubicacionId="@Model.UbicacionFiltro"
+           class="btn btn-outline-success rounded-3 fw-semibold">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar Resultados Filtrados
         </a>
         <a asp-controller="Account" asp-action="GestionTecnicos" class="btn btn-outline-primary rounded-3 fw-semibold">
             <i class="bi bi-people-fill me-1"></i>Gestionar Técnicos
+        </a>
+        <a asp-controller="Catalogos" asp-action="Categorias" class="btn btn-outline-secondary rounded-3 fw-semibold">
+            <i class="bi bi-tags-fill me-1"></i>Catálogos
         </a>
         <a asp-action="Crear" class="btn btn-tecnm-primary rounded-3">
             <i class="bi bi-plus-lg me-1"></i>Nuevo Ticket
@@ -83,9 +92,8 @@
     </div>
 </div>
 
-<!-- SECCIÓN DE GRÁFICAS INTERACTIVAS (Chart.js) -->
+<!-- SECCIÓN DE GRÁFICAS INTERACTIVAS -->
 <div class="row g-4 mb-4">
-    <!-- Gráfica 1: Distribución por Estado (Doughnut Chart) -->
     <div class="col-lg-4">
         <div class="card card-tecnm h-100 border-0 overflow-hidden shadow-sm">
             <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
@@ -100,7 +108,6 @@
         </div>
     </div>
 
-    <!-- Gráfica 2: Fallas por Edificio / Área (Bar Chart) -->
     <div class="col-lg-4">
         <div class="card card-tecnm h-100 border-0 overflow-hidden shadow-sm">
             <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
@@ -115,7 +122,6 @@
         </div>
     </div>
 
-    <!-- Gráfica 3: Fallas por Categoría (Polar / Horizontal Bar Chart) -->
     <div class="col-lg-4">
         <div class="card card-tecnm h-100 border-0 overflow-hidden shadow-sm">
             <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
@@ -131,9 +137,208 @@
     </div>
 </div>
 
+<!-- TABLA DE INCIDENCIAS CON FILTROS, BÚSQUEDA Y PAGINACIÓN EN SERVIDOR -->
+<div class="card card-tecnm border-0 overflow-hidden shadow-sm mb-4">
+    <div class="card-header bg-white py-3 border-bottom">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-12 col-md-3">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                    <input type="text" name="busqueda" value="@Model.Busqueda" class="form-control" placeholder="Buscar folio, solicitante, aula..." />
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="estado" class="form-select form-select-sm">
+                    <option value="">-- Estado --</option>
+                    <option value="Abierto" selected="@(Model.EstadoFiltro == TicketsApp.Domain.Enums.EstadoTicket.Abierto)">Abierto</option>
+                    <option value="EnProgreso" selected="@(Model.EstadoFiltro == TicketsApp.Domain.Enums.EstadoTicket.EnProgreso)">En Progreso</option>
+                    <option value="Resuelto" selected="@(Model.EstadoFiltro == TicketsApp.Domain.Enums.EstadoTicket.Resuelto)">Resuelto</option>
+                    <option value="Cancelado" selected="@(Model.EstadoFiltro == TicketsApp.Domain.Enums.EstadoTicket.Cancelado)">Cancelado</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="prioridad" class="form-select form-select-sm">
+                    <option value="">-- Prioridad --</option>
+                    <option value="Alta" selected="@(Model.PrioridadFiltro == TicketsApp.Domain.Enums.PrioridadTicket.Alta)">Alta (Docente)</option>
+                    <option value="Normal" selected="@(Model.PrioridadFiltro == TicketsApp.Domain.Enums.PrioridadTicket.Normal)">Normal (Alumno)</option>
+                    <option value="Urgente" selected="@(Model.PrioridadFiltro == TicketsApp.Domain.Enums.PrioridadTicket.Urgente)">Urgente</option>
+                    <option value="Baja" selected="@(Model.PrioridadFiltro == TicketsApp.Domain.Enums.PrioridadTicket.Baja)">Baja</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="categoriaId" asp-items="ViewBag.Categorias" class="form-select form-select-sm">
+                    <option value="">-- Categoría --</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="orden" class="form-select form-select-sm">
+                    <option value="" selected="@(string.IsNullOrEmpty(Model.OrdenActual))">Más Recientes</option>
+                    <option value="fecha_asc" selected="@(Model.OrdenActual == "fecha_asc")">Más Antiguos</option>
+                    <option value="prioridad_desc" selected="@(Model.OrdenActual == "prioridad_desc")">Mayor Prioridad</option>
+                    <option value="folio_asc" selected="@(Model.OrdenActual == "folio_asc")">Folio Ascendente</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-sm btn-tecnm-primary w-100" title="Aplicar Filtros">
+                    <i class="bi bi-filter"></i>
+                </button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary" title="Limpiar Filtros">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-tecnm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Folio</th>
+                        <th>Problema / Falla</th>
+                        <th>Solicitante</th>
+                        <th>Ubicación</th>
+                        <th>Técnico Asignado</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.TicketsPaginados.Items.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No se encontraron tickets con los filtros seleccionados.</td>
+                        </tr>
+                    }
+                    @foreach (var t in Model.TicketsPaginados.Items)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">#@t.Id</td>
+                            <td>
+                                <a asp-action="Detalle" asp-route-id="@t.Id" class="fw-bold text-dark text-decoration-none">
+                                    @t.Titulo
+                                </a>
+                                <small class="text-muted d-block text-truncate" style="max-width: 220px;">@t.Descripcion</small>
+                            </td>
+                            <td>
+                                <div class="fw-semibold small">@t.Solicitante?.NombreCompleto</div>
+                                <span class="text-muted" style="font-size: 0.75rem;">@t.Solicitante?.Email</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold">@t.Ubicacion?.Nombre</span>
+                                @if (!string.IsNullOrEmpty(t.DetalleAula))
+                                {
+                                    <small class="text-muted d-block">@t.DetalleAula</small>
+                                }
+                            </td>
+                            <td>
+                                @if (t.TecnicoAsignado != null)
+                                {
+                                    <span class="small fw-semibold text-dark"><i class="bi bi-person-check me-1 text-success"></i>@t.TecnicoAsignado.NombreCompleto</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Sin asignar</span>
+                                }
+                            </td>
+                            <td>
+                                @if (t.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Alta)
+                                {
+                                    <span class="badge-priority-alta"><i class="bi bi-lightning-charge-fill me-1"></i>Alta</span>
+                                }
+                                else if (t.Prioridad == TicketsApp.Domain.Enums.PrioridadTicket.Urgente)
+                                {
+                                    <span class="badge bg-danger text-white rounded-pill px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Urgente</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-priority-normal">Normal</span>
+                                }
+                            </td>
+                            <td>
+                                @switch (t.Estado)
+                                {
+                                    case TicketsApp.Domain.Enums.EstadoTicket.Abierto:
+                                        <span class="badge-status-abierto">Abierto</span>
+                                        break;
+                                    case TicketsApp.Domain.Enums.EstadoTicket.EnProgreso:
+                                        <span class="badge-status-progreso">En Progreso</span>
+                                        break;
+                                    case TicketsApp.Domain.Enums.EstadoTicket.Resuelto:
+                                        <span class="badge-status-resuelto">Resuelto</span>
+                                        break;
+                                    case TicketsApp.Domain.Enums.EstadoTicket.Cancelado:
+                                        <span class="badge bg-secondary text-white rounded-pill px-2 py-1">Cancelado</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Detalle" asp-route-id="@t.Id" class="btn btn-sm btn-outline-primary rounded-2">
+                                    <i class="bi bi-eye-fill me-1"></i>Ver
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Paginación de la Tabla -->
+    @if (Model.TicketsPaginados.TotalPages > 1)
+    {
+        <div class="card-footer bg-white py-3 border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <small class="text-muted">
+                Mostrando página <strong>@Model.TicketsPaginados.PageNumber</strong> de <strong>@Model.TicketsPaginados.TotalPages</strong> (Total: @Model.TicketsPaginados.TotalItems registros)
+            </small>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(!Model.TicketsPaginados.HasPreviousPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-pagina="@(Model.TicketsPaginados.PageNumber - 1)"
+                           asp-route-busqueda="@Model.Busqueda"
+                           asp-route-estado="@Model.EstadoFiltro"
+                           asp-route-prioridad="@Model.PrioridadFiltro"
+                           asp-route-categoriaId="@Model.CategoriaFiltro"
+                           asp-route-ubicacionId="@Model.UbicacionFiltro"
+                           asp-route-orden="@Model.OrdenActual">
+                            <i class="bi bi-chevron-left"></i> Anterior
+                        </a>
+                    </li>
+                    @for (int p = 1; p <= Model.TicketsPaginados.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == Model.TicketsPaginados.PageNumber ? "active" : "")">
+                            <a class="page-link" asp-action="Index" 
+                               asp-route-pagina="@p"
+                               asp-route-busqueda="@Model.Busqueda"
+                               asp-route-estado="@Model.EstadoFiltro"
+                               asp-route-prioridad="@Model.PrioridadFiltro"
+                               asp-route-categoriaId="@Model.CategoriaFiltro"
+                               asp-route-ubicacionId="@Model.UbicacionFiltro"
+                               asp-route-orden="@Model.OrdenActual">@p</a>
+                        </li>
+                    }
+                    <li class="page-item @(!Model.TicketsPaginados.HasNextPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-pagina="@(Model.TicketsPaginados.PageNumber + 1)"
+                           asp-route-busqueda="@Model.Busqueda"
+                           asp-route-estado="@Model.EstadoFiltro"
+                           asp-route-prioridad="@Model.PrioridadFiltro"
+                           asp-route-categoriaId="@Model.CategoriaFiltro"
+                           asp-route-ubicacionId="@Model.UbicacionFiltro"
+                           asp-route-orden="@Model.OrdenActual">
+                            Siguiente <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
 <!-- SECCIÓN DE DETALLES: Eficiencia y Solicitantes -->
 <div class="row g-4 mb-4">
-    <!-- Eficiencia de Técnicos -->
     <div class="col-lg-6">
         <div class="card card-tecnm h-100 border-0 overflow-hidden shadow-sm">
             <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
@@ -170,7 +375,6 @@
         </div>
     </div>
 
-    <!-- Top Solicitantes -->
     <div class="col-lg-6">
         <div class="card card-tecnm h-100 border-0 overflow-hidden shadow-sm">
             <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
@@ -211,129 +415,12 @@
     </div>
 </div>
 
-<!-- Tabla Interactiva con Buscador y Filtros en Vivo -->
-<div class="card card-tecnm border-0 overflow-hidden shadow-sm">
-    <div class="card-header bg-white py-3 border-bottom">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-table text-primary me-2"></i>Todas las Incidencias del Campus</h6>
-            
-            <!-- Barra de Filtro y Búsqueda en Vivo -->
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <div class="input-group input-group-sm" style="max-width: 250px;">
-                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
-                    <input id="inputFiltroBusqueda" type="text" class="form-control" placeholder="Buscar folio, solicitante, falla..." />
-                </div>
-                <select id="selectFiltroEstado" class="form-select form-select-sm" style="width: 140px;">
-                    <option value="">-- Todos los Estados --</option>
-                    <option value="Abierto">Abiertos</option>
-                    <option value="EnProgreso">En Progreso</option>
-                    <option value="Resuelto">Resueltos</option>
-                </select>
-                <select id="selectFiltroPrioridad" class="form-select form-select-sm" style="width: 150px;">
-                    <option value="">-- Prioridades --</option>
-                    <option value="Alta">Alta (Docente)</option>
-                    <option value="Normal">Normal (Alumno)</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table id="tablaTicketsAdmin" class="table table-tecnm table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Folio</th>
-                        <th>Problema / Falla</th>
-                        <th>Solicitante</th>
-                        <th>Ubicación</th>
-                        <th>Técnico Asignado</th>
-                        <th>Prioridad</th>
-                        <th>Estado</th>
-                        <th class="text-end">Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (!Model.UltimosTickets.Any())
-                    {
-                        <tr><td colspan="8" class="text-center text-muted py-4">No hay tickets registrados aún en el sistema.</td></tr>
-                    }
-                    @foreach (var t in Model.UltimosTickets)
-                    {
-                        <tr class="ticket-row" data-estado="@t.Estado" data-prioridad="@t.Prioridad">
-                            <td class="fw-bold text-primary">#@t.Id</td>
-                            <td>
-                                <a asp-action="Detalle" asp-route-id="@t.Id" class="fw-bold text-dark text-decoration-none">
-                                    @t.Titulo
-                                </a>
-                                <small class="text-muted d-block text-truncate" style="max-width: 220px;">@t.Descripcion</small>
-                            </td>
-                            <td>
-                                <div class="fw-semibold small">@t.Solicitante?.NombreCompleto</div>
-                                <span class="text-muted" style="font-size: 0.75rem;">@t.Solicitante?.Email</span>
-                            </td>
-                            <td>
-                                <span class="fw-semibold">@t.Ubicacion?.Nombre</span>
-                                @if (!string.IsNullOrEmpty(t.DetalleAula))
-                                {
-                                    <small class="text-muted d-block">@t.DetalleAula</small>
-                                }
-                            </td>
-                            <td>
-                                @if (t.TecnicoAsignado != null)
-                                {
-                                    <span class="small fw-semibold text-dark"><i class="bi bi-person-check me-1 text-success"></i>@t.TecnicoAsignado.NombreCompleto</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Sin asignar</span>
-                                }
-                            </td>
-                            <td>
-                                @if (t.Prioridad == TicketsApp.Models.PrioridadTicket.Alta)
-                                {
-                                    <span class="badge-priority-alta"><i class="bi bi-lightning-charge-fill me-1"></i>Alta</span>
-                                }
-                                else
-                                {
-                                    <span class="badge-priority-normal">Normal</span>
-                                }
-                            </td>
-                            <td>
-                                @switch (t.Estado)
-                                {
-                                    case TicketsApp.Models.EstadoTicket.Abierto:
-                                        <span class="badge-status-abierto">Abierto</span>
-                                        break;
-                                    case TicketsApp.Models.EstadoTicket.EnProgreso:
-                                        <span class="badge-status-progreso">En Progreso</span>
-                                        break;
-                                    case TicketsApp.Models.EstadoTicket.Resuelto:
-                                        <span class="badge-status-resuelto">Resuelto</span>
-                                        break;
-                                }
-                            </td>
-                            <td class="text-end">
-                                <a asp-action="Detalle" asp-route-id="@t.Id" class="btn btn-sm btn-outline-primary rounded-2">
-                                    <i class="bi bi-eye-fill me-1"></i>Ver Detalle
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
-<!-- Librería Oficial Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // ==========================================
         // 1. Gráfica de Estados (Doughnut)
-        // ==========================================
         const ctxEstados = document.getElementById('chartEstados');
         if (ctxEstados) {
             new Chart(ctxEstados, {
@@ -354,10 +441,7 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: {
-                                boxWidth: 14,
-                                font: { family: 'Plus Jakarta Sans', size: 12 }
-                            }
+                            labels: { boxWidth: 14, font: { family: 'Plus Jakarta Sans', size: 12 } }
                         }
                     },
                     cutout: '70%'
@@ -365,9 +449,7 @@
             });
         }
 
-        // ==========================================
-        // 2. Gráfica de Ubicaciones / Edificios (Bar Chart)
-        // ==========================================
+        // 2. Gráfica de Ubicaciones (Bar Chart)
         const ctxUbicaciones = document.getElementById('chartUbicaciones');
         if (ctxUbicaciones) {
             const labelsUbicaciones = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FallasPorUbicacion.Select(x => x.Ubicacion)));
@@ -388,9 +470,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -406,9 +486,7 @@
             });
         }
 
-        // ==========================================
-        // 3. Gráfica de Categorías (Horizontal Bar Chart)
-        // ==========================================
+        // 3. Gráfica de Categorías (Horizontal Bar)
         const ctxCategorias = document.getElementById('chartCategorias');
         if (ctxCategorias) {
             const labelsCategorias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FallasPorCategoria.Select(x => x.Categoria)));
@@ -430,9 +508,7 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         x: {
                             beginAtZero: true,
@@ -447,40 +523,6 @@
                 }
             });
         }
-
-        // ==========================================
-        // 4. Filtro y Buscador en Vivo
-        // ==========================================
-        const inputBusqueda = document.getElementById("inputFiltroBusqueda");
-        const selectEstado = document.getElementById("selectFiltroEstado");
-        const selectPrioridad = document.getElementById("selectFiltroPrioridad");
-        const rows = document.querySelectorAll("#tablaTicketsAdmin tbody tr.ticket-row");
-
-        function filtrarTabla() {
-            const texto = inputBusqueda.value.toLowerCase().trim();
-            const estadoFiltro = selectEstado.value;
-            const prioridadFiltro = selectPrioridad.value;
-
-            rows.forEach(row => {
-                const contenidoFila = row.textContent.toLowerCase();
-                const estado = row.getAttribute("data-estado");
-                const prioridad = row.getAttribute("data-prioridad");
-
-                const coincideTexto = !texto || contenidoFila.includes(texto);
-                const coincideEstado = !estadoFiltro || estado === estadoFiltro;
-                const coincidePrioridad = !prioridadFiltro || prioridad === prioridadFiltro;
-
-                if (coincideTexto && coincideEstado && coincidePrioridad) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        }
-
-        if (inputBusqueda) inputBusqueda.addEventListener("input", filtrarTabla);
-        if (selectEstado) selectEstado.addEventListener("change", filtrarTabla);
-        if (selectPrioridad) selectPrioridad.addEventListener("change", filtrarTabla);
     });
 </script>
 }

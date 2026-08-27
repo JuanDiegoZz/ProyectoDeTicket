@@ -1,5 +1,5 @@
 @using System.Security.Claims
-@using TicketsApp.Models
+@using TicketsApp.Domain.Enums
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="~/css/custom.css?v=@DateTime.UtcNow.Ticks" />
 </head>
 <body>
-    <!-- HEADER SUPERIOR INSTITUCIONAL (Banner del Tecnológico) -->
+    <!-- HEADER SUPERIOR INSTITUCIONAL -->
     <header class="bg-white border-bottom py-2 d-none d-md-block">
         <div class="container d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
@@ -75,6 +75,16 @@
                             <li class="nav-item">
                                 <a class="nav-link nav-link-custom" asp-controller="Account" asp-action="GestionTecnicos">
                                     <i class="bi bi-person-badge-fill me-1 text-warning"></i>Técnicos
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-custom" asp-controller="Catalogos" asp-action="Categorias">
+                                    <i class="bi bi-tags-fill me-1 text-warning"></i>Categorías
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-custom" asp-controller="Catalogos" asp-action="Ubicaciones">
+                                    <i class="bi bi-geo-alt-fill me-1 text-warning"></i>Ubicaciones
                                 </a>
                             </li>
                         }
@@ -154,7 +164,7 @@
                 <span>Instituto Tecnológico Superior de Monclova &copy; @DateTime.UtcNow.Year</span>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-light text-secondary border">Mesa de Ayuda TI v1.5</span>
+                <span class="badge bg-light text-secondary border">Mesa de Ayuda TI v2.0 (.NET 10)</span>
                 <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="bi bi-shield-lock-fill me-1"></i>Conexión Segura</span>
             </div>
         </div>
