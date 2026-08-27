@@ -14,8 +14,7 @@
     --tecnm-accent-gradient: linear-gradient(135deg, #1B396A 0%, #10223E 100%);
 /* Contenedor del Logotipo en Navbar */
 .logo-header-container {
-    background-color: #FFFFFF;
-    border-radius: 8px;
+    background-color: transparent;
     transition: all 0.3s ease;
 }
 
@@ -23,18 +22,18 @@
     height: 38px;
     width: auto;
     object-fit: contain;
+    filter: brightness(0) invert(1); /* Blanco perfecto para resaltar en la barra azul en modo claro */
     transition: all 0.3s ease;
 }
 
 /* Adaptación del Logotipo en Modo Oscuro */
 body.dark-mode .logo-header-container {
-    background-color: #10223E !important;
-    border: 1px solid var(--tecnm-border) !important;
+    background-color: transparent !important;
+    border: none !important;
 }
 
 body.dark-mode .logo-header-img {
-    /* Inversión cromática limpia para volver blanco el fondo y resaltar la marca en fondo oscuro */
-    filter: brightness(0) invert(1);
+    filter: brightness(0) invert(1) drop-shadow(0 0 2px rgba(255,255,255,0.3));
 }
 
 /* ==========================================

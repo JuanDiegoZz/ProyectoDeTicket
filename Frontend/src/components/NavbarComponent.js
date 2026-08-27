@@ -31,8 +31,8 @@ export default {
     <nav class="navbar navbar-expand-lg navbar-dark navbar-tecnm sticky-top">
       <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-3" @click="$emit('navigate', 'home')" style="cursor: pointer;">
-          <div class="logo-header-container p-1 px-2 rounded-3 d-flex align-items-center">
-            <img src="/src/assets/img/logo-tecnm-header.png" alt="Tecnológico Nacional de México" height="38" class="logo-header-img" />
+          <div class="logo-header-container d-flex align-items-center">
+            <img src="/src/assets/img/logo-tecnm-transparent.png" alt="Tecnológico Nacional de México" height="38" class="logo-header-img" />
           </div>
           <div class="d-flex flex-column border-start border-white-50 ps-3">
             <span class="fw-bold fs-6 leading-tight text-white">Soporte TI</span>
