@@ -340,20 +340,21 @@ public class TicketsController : ControllerBase
 
         foreach (var t in tickets)
         {
-            var tituloEscapado = $"\"{t.Titulo.Replace("\"", "\"\"")}\"";
-            var detalleAula = !string.IsNullOrEmpty(t.DetalleAula) ? $"\"{t.DetalleAula.Replace("\"", "\"\"")}\"" : "N/A";
+            var tituloEscapado = $"\"{t.Titulo.Replace("\"", "\"\"").Replace("\r", " ").Replace("\n", " ")}\"";
+            var detalleAula = !string.IsNullOrEmpty(t.DetalleAula) ? $"\"{t.DetalleAula.Replace("\"", "\"\"").Replace("\r", " ").Replace("\n", " ")}\"" : "N/A";
             var solicitante = $"\"{t.Solicitante?.NombreCompleto.Replace("\"", "\"\"")}\"";
             var emailSol = t.Solicitante?.Email ?? "N/A";
             var tecnico = t.TecnicoAsignado != null ? $"\"{t.TecnicoAsignado.NombreCompleto.Replace("\"", "\"\"")}\"" : "Sin Asignar";
             var calif = t.CalificacionSatisfaccion.HasValue ? $"{t.CalificacionSatisfaccion} de 5 Estrellas" : "Sin Evaluar";
-            var comentario = !string.IsNullOrEmpty(t.ComentarioSatisfaccion) ? $"\"{t.ComentarioSatisfaccion.Replace("\"", "\"\"")}\"" : "Sin comentarios";
+            var comentario = !string.IsNullOrEmpty(t.ComentarioSatisfaccion) ? $"\"{t.ComentarioSatisfaccion.Replace("\"", "\"\"").Replace("\r", " ").Replace("\n", " ")}\"" : "Sin comentarios";
             var fechaReporte = t.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
             var fechaResolucion = t.FechaResolucion.HasValue ? t.FechaResolucion.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "Pendiente";
 
             builder.AppendLine($"{t.Id},{tituloEscapado},{t.Categoria?.Nombre},{t.Ubicacion?.Nombre},{detalleAula},{t.Prioridad},{t.Estado},{solicitante},{emailSol},{tecnico},{fechaReporte},{fechaResolucion},{calif},{comentario}");
         }
 
-        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
+        var encoding = new UTF8Encoding(true); // Con marca de orden de bytes (BOM)
+        var bytes = encoding.GetPreamble().Concat(encoding.GetBytes(builder.ToString())).ToArray();
         return File(bytes, "text/csv; charset=utf-8", $"Reporte_Tickets_TecNM_Filtrado_{DateTime.UtcNow:yyyyMMdd_HHmm}.csv");
     }
 }
