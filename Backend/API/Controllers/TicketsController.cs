@@ -56,6 +56,8 @@ public class TicketsController : ControllerBase
         [FromQuery] PrioridadTicket? prioridad = null,
         [FromQuery] int? categoriaId = null,
         [FromQuery] int? ubicacionId = null,
+        [FromQuery] DateTime? fechaInicio = null,
+        [FromQuery] DateTime? fechaFin = null,
         [FromQuery] int pagina = 1,
         [FromQuery] int tamanoPagina = 10,
         [FromQuery] string? orden = null)
@@ -66,7 +68,7 @@ public class TicketsController : ControllerBase
         if (userRol == RolUsuario.Administrador)
         {
             var pagedTickets = await _ticketService.ObtenerTicketsPaginadosAsync(
-                busqueda, estado, prioridad, categoriaId, ubicacionId, pagina, tamanoPagina, orden);
+                busqueda, estado, prioridad, categoriaId, ubicacionId, fechaInicio, fechaFin, pagina, tamanoPagina, orden);
             return Ok(pagedTickets);
         }
 
@@ -81,30 +83,67 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet("dashboard-admin")]
-    public async Task<IActionResult> ObtenerDashboardAdmin()
+    public async Task<IActionResult> ObtenerDashboardAdmin(
+        [FromQuery] string? busqueda = null,
+        [FromQuery] EstadoTicket? estado = null,
+        [FromQuery] PrioridadTicket? prioridad = null,
+        [FromQuery] int? categoriaId = null,
+        [FromQuery] int? ubicacionId = null,
+        [FromQuery] DateTime? fechaInicio = null,
+        [FromQuery] DateTime? fechaFin = null)
     {
         var (userId, userRol, _) = ObtenerSesionUsuario();
         if (userRol != RolUsuario.Administrador) return StatusCode(StatusCodes.Status403Forbidden);
 
-        var total = await _context.Tickets.CountAsync();
-        var abiertos = await _context.Tickets.CountAsync(t => t.Estado == EstadoTicket.Abierto);
-        var enProgreso = await _context.Tickets.CountAsync(t => t.Estado == EstadoTicket.EnProgreso);
-        var resueltos = await _context.Tickets.CountAsync(t => t.Estado == EstadoTicket.Resuelto);
+        var query = _context.Tickets.AsQueryable();
 
-        var fallasUbicacion = await _context.Tickets
+        if (!string.IsNullOrWhiteSpace(busqueda))
+        {
+            var texto = busqueda.Trim().ToLower();
+            query = query.Where(t => 
+                t.Titulo.ToLower().Contains(texto) ||
+                t.Descripcion.ToLower().Contains(texto) ||
+                t.Solicitante.NombreCompleto.ToLower().Contains(texto) ||
+                t.Solicitante.Email.ToLower().Contains(texto) ||
+                (t.DetalleAula != null && t.DetalleAula.ToLower().Contains(texto)));
+        }
+
+        if (estado.HasValue) query = query.Where(t => t.Estado == estado.Value);
+        if (prioridad.HasValue) query = query.Where(t => t.Prioridad == prioridad.Value);
+        if (categoriaId.HasValue && categoriaId.Value > 0) query = query.Where(t => t.CategoriaId == categoriaId.Value);
+        if (ubicacionId.HasValue && ubicacionId.Value > 0) query = query.Where(t => t.UbicacionId == ubicacionId.Value);
+
+        if (fechaInicio.HasValue)
+        {
+            var inicioUtc = DateTime.SpecifyKind(fechaInicio.Value.Date, DateTimeKind.Utc);
+            query = query.Where(t => t.FechaCreacion >= inicioUtc);
+        }
+
+        if (fechaFin.HasValue)
+        {
+            var finUtc = DateTime.SpecifyKind(fechaFin.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+            query = query.Where(t => t.FechaCreacion <= finUtc);
+        }
+
+        var total = await query.CountAsync();
+        var abiertos = await query.CountAsync(t => t.Estado == EstadoTicket.Abierto);
+        var enProgreso = await query.CountAsync(t => t.Estado == EstadoTicket.EnProgreso);
+        var resueltos = await query.CountAsync(t => t.Estado == EstadoTicket.Resuelto);
+
+        var fallasUbicacion = await query
             .GroupBy(t => t.Ubicacion!.Nombre)
             .Select(g => new MetricaAreaViewModel { Ubicacion = g.Key, Cantidad = g.Count() })
             .OrderByDescending(x => x.Cantidad)
             .Take(5)
             .ToListAsync();
 
-        var fallasCategoria = await _context.Tickets
+        var fallasCategoria = await query
             .GroupBy(t => t.Categoria!.Nombre)
             .Select(g => new MetricaCategoriaViewModel { Categoria = g.Key, Cantidad = g.Count() })
             .OrderByDescending(x => x.Cantidad)
             .ToListAsync();
 
-        var topSolicitantes = await _context.Tickets
+        var topSolicitantes = await query
             .GroupBy(t => new { t.Solicitante!.NombreCompleto, t.Solicitante.Email })
             .Select(g => new MetricaUsuarioViewModel
             {
@@ -285,13 +324,15 @@ public class TicketsController : ControllerBase
         [FromQuery] PrioridadTicket? prioridad = null,
         [FromQuery] int? categoriaId = null,
         [FromQuery] int? ubicacionId = null,
+        [FromQuery] DateTime? fechaInicio = null,
+        [FromQuery] DateTime? fechaFin = null,
         [FromQuery] string? orden = null)
     {
         var (userId, userRol, _) = ObtenerSesionUsuario();
         if (userRol != RolUsuario.Administrador) return StatusCode(StatusCodes.Status403Forbidden);
 
         var pagedResult = await _ticketService.ObtenerTicketsPaginadosAsync(
-            busqueda, estado, prioridad, categoriaId, ubicacionId, pagina: 1, tamanoPagina: 100000, orden);
+            busqueda, estado, prioridad, categoriaId, ubicacionId, fechaInicio, fechaFin, pagina: 1, tamanoPagina: 100000, orden);
 
         var tickets = pagedResult.Items;
         var builder = new StringBuilder();

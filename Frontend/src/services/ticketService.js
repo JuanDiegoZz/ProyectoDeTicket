@@ -8,6 +8,8 @@ export const ticketService = {
     if (params.prioridad) query.append('prioridad', params.prioridad);
     if (params.categoriaId) query.append('categoriaId', params.categoriaId);
     if (params.ubicacionId) query.append('ubicacionId', params.ubicacionId);
+    if (params.fechaInicio) query.append('fechaInicio', params.fechaInicio);
+    if (params.fechaFin) query.append('fechaFin', params.fechaFin);
     if (params.pagina) query.append('pagina', params.pagina);
     if (params.tamanoPagina) query.append('tamanoPagina', params.tamanoPagina);
     if (params.orden) query.append('orden', params.orden);
@@ -65,6 +67,20 @@ export const ticketService = {
     });
   },
 
+  async obtenerDashboardAdmin(params = {}) {
+    const query = new URLSearchParams();
+    if (params.busqueda) query.append('busqueda', params.busqueda);
+    if (params.estado) query.append('estado', params.estado);
+    if (params.prioridad) query.append('prioridad', params.prioridad);
+    if (params.categoriaId) query.append('categoriaId', params.categoriaId);
+    if (params.ubicacionId) query.append('ubicacionId', params.ubicacionId);
+    if (params.fechaInicio) query.append('fechaInicio', params.fechaInicio);
+    if (params.fechaFin) query.append('fechaFin', params.fechaFin);
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return await fetchApi(`/tickets/dashboard-admin${queryString}`);
+  },
+
   async descargarExportacionCsv(params = {}) {
     const query = new URLSearchParams();
     if (params.busqueda) query.append('busqueda', params.busqueda);
@@ -72,6 +88,8 @@ export const ticketService = {
     if (params.prioridad) query.append('prioridad', params.prioridad);
     if (params.categoriaId) query.append('categoriaId', params.categoriaId);
     if (params.ubicacionId) query.append('ubicacionId', params.ubicacionId);
+    if (params.fechaInicio) query.append('fechaInicio', params.fechaInicio);
+    if (params.fechaFin) query.append('fechaFin', params.fechaFin);
     if (params.orden) query.append('orden', params.orden);
 
     const blob = await fetchApi(`/tickets/exportar-csv?${query.toString()}`);

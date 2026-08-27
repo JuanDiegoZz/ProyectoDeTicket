@@ -53,7 +53,8 @@ Backend/API/
 
 ### 3.4. Tickets (`/api/tickets`)
 - **`GET /api/tickets`**: Consulta paginada y filtrada en servidor.
-- **`GET /api/tickets/dashboard-admin`**: Métricas analíticas completas para Chart.js.
+- **`GET /api/tickets/dashboard-admin`**: Métricas agrupadas para las gráficas (`vue-chartjs` + `Chart.js`) con soporte para filtros de `busqueda`, `estado`, `prioridad`, `categoriaId`, `ubicacionId`, `fechaInicio` y `fechaFin`.
+- **`GET /api/tickets/exportar-csv`**: Descarga de reportes filtrados en formato CSV (UTF-8 con BOM) compatible con Microsoft Excel respetando los mismos filtros activos.
 - **`GET /api/tickets/{id}`**: Detalle completo del ticket con notas.
 - **`POST /api/tickets`**: Crea reporte de falla (FormData con archivo opcional).
 - **`POST /api/tickets/{id}/cambiar-estado`**: Actualiza estado (Técnico/Admin).

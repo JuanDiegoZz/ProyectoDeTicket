@@ -22,6 +22,8 @@ export default {
         prioridad: '',
         categoriaId: '',
         ubicacionId: '',
+        fechaInicio: '',
+        fechaFin: '',
         orden: '',
         pagina: 1
       },
@@ -88,7 +90,7 @@ export default {
     async cargarDatos() {
       this.cargando = true;
       try {
-        this.metrics = await ticketService.obtenerDashboardAdmin();
+        this.metrics = await ticketService.obtenerDashboardAdmin(this.filtros);
         this.pagedResult = await ticketService.obtenerTickets(this.filtros);
       } catch (e) {
         console.error(e);
@@ -101,7 +103,7 @@ export default {
       this.cargarDatos();
     },
     limpiarFiltros() {
-      this.filtros = { busqueda: '', estado: '', prioridad: '', categoriaId: '', ubicacionId: '', orden: '', pagina: 1 };
+      this.filtros = { busqueda: '', estado: '', prioridad: '', categoriaId: '', ubicacionId: '', fechaInicio: '', fechaFin: '', orden: '', pagina: 1 };
       this.cargarDatos();
     },
     cambiarPagina(p) {
@@ -212,6 +214,24 @@ export default {
               <input type="text" v-model="filtros.busqueda" class="form-control form-control-sm" placeholder="Buscar folio, solicitante, aula..." />
             </div>
             <div class="col-6 col-md-2">
+              <input type="date" v-model="filtros.fechaInicio" class="form-control form-control-sm" title="Fecha Inicial" />
+            </div>
+            <div class="col-6 col-md-2">
+              <input type="date" v-model="filtros.fechaFin" class="form-control form-control-sm" title="Fecha Final" />
+            </div>
+            <div class="col-6 col-md-2">
+              <select v-model="filtros.ubicacionId" class="form-select form-select-sm">
+                <option value="">-- Edificio / Ubicación --</option>
+                <option v-for="u in ubicaciones" :key="u.id" :value="u.id">{{ u.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2">
+              <select v-model="filtros.categoriaId" class="form-select form-select-sm">
+                <option value="">-- Categoría --</option>
+                <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2">
               <select v-model="filtros.estado" class="form-select form-select-sm">
                 <option value="">-- Estado --</option>
                 <option value="Abierto">Abierto</option>
@@ -223,27 +243,23 @@ export default {
             <div class="col-6 col-md-2">
               <select v-model="filtros.prioridad" class="form-select form-select-sm">
                 <option value="">-- Prioridad --</option>
-                <option value="Alta">Alta</option>
+                <option value="Baja">Baja</option>
                 <option value="Normal">Normal</option>
+                <option value="Alta">Alta</option>
                 <option value="Urgente">Urgente</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-2">
-              <select v-model="filtros.categoriaId" class="form-select form-select-sm">
-                <option value="">-- Categoría --</option>
-                <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
               </select>
             </div>
             <div class="col-6 col-md-2">
               <select v-model="filtros.orden" class="form-select form-select-sm">
                 <option value="">Recientes</option>
+                <option value="fecha_asc">Antiguos</option>
                 <option value="prioridad_desc">Prioridad Alta</option>
                 <option value="folio_asc">Folio Asc</option>
               </select>
             </div>
-            <div class="col-12 col-md-1 d-flex gap-1">
-              <button type="submit" class="btn btn-sm btn-tecnm-primary w-100"><i class="bi bi-filter"></i></button>
-              <button type="button" @click="limpiarFiltros" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-lg"></i></button>
+            <div class="col-12 col-md-6 d-flex gap-2">
+              <button type="submit" class="btn btn-sm btn-tecnm-primary px-3 fw-bold"><i class="bi bi-filter me-1"></i>Filtrar Reportes</button>
+              <button type="button" @click="limpiarFiltros" class="btn btn-sm btn-outline-secondary px-3"><i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar Filtros</button>
             </div>
           </form>
         </div>

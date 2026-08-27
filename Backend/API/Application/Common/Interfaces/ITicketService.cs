@@ -18,6 +18,8 @@ public interface ITicketService
         PrioridadTicket? prioridad = null,
         int? categoriaId = null,
         int? ubicacionId = null,
+        DateTime? fechaInicio = null,
+        DateTime? fechaFin = null,
         int pagina = 1,
         int tamanoPagina = 10,
         string? orden = null);

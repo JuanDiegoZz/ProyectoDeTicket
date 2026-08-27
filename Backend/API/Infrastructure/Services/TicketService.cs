@@ -69,6 +69,8 @@ public class TicketService : ITicketService
         PrioridadTicket? prioridad = null,
         int? categoriaId = null,
         int? ubicacionId = null,
+        DateTime? fechaInicio = null,
+        DateTime? fechaFin = null,
         int pagina = 1,
         int tamanoPagina = 10,
         string? orden = null)
@@ -111,6 +113,18 @@ public class TicketService : ITicketService
         if (ubicacionId.HasValue && ubicacionId.Value > 0)
         {
             query = query.Where(t => t.UbicacionId == ubicacionId.Value);
+        }
+
+        if (fechaInicio.HasValue)
+        {
+            var inicioUtc = DateTime.SpecifyKind(fechaInicio.Value.Date, DateTimeKind.Utc);
+            query = query.Where(t => t.FechaCreacion >= inicioUtc);
+        }
+
+        if (fechaFin.HasValue)
+        {
+            var finUtc = DateTime.SpecifyKind(fechaFin.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+            query = query.Where(t => t.FechaCreacion <= finUtc);
         }
 
         // 3. Ordenamiento
