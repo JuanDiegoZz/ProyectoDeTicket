@@ -1,0 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --tecnm-blue: #1B396A;
+    --tecnm-dark: #10223E;
+    --tecnm-gold: #D4AF37;
+    --tecnm-gold-hover: #b8952b;
+    --tecnm-light: #F8FAFC;
+    --tecnm-card-bg: #FFFFFF;
+    --tecnm-text-main: #1E293B;
+    --tecnm-text-muted: #64748B;
+    --tecnm-border: #E2E8F0;
+    --tecnm-accent-gradient: linear-gradient(135deg, #1B396A 0%, #0F2347 100%);
+    --tecnm-gold-gradient: linear-gradient(135deg, #E6C25B 0%, #D4AF37 100%);
+}
+
+/* ==========================================
+   TEMA OSCURO COMPLETO (DARK MODE VUE 3)
+   ========================================== */
+body.dark-mode {
+    --tecnm-light: #0B1329;
+    --tecnm-card-bg: #151F38;
+    --tecnm-text-main: #F1F5F9;
+    --tecnm-text-muted: #94A3B8;
+    --tecnm-border: #233358;
+}
+
+body.dark-mode .card-tecnm,
+body.dark-mode .bg-white,
+body.dark-mode header.bg-white,
+body.dark-mode footer.bg-white,
+body.dark-mode .card-header.bg-white,
+body.dark-mode .card-footer.bg-white,
+body.dark-mode .modal-content {
+    background-color: var(--tecnm-card-bg) !important;
+    color: var(--tecnm-text-main) !important;
+    border-color: var(--tecnm-border) !important;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode .text-dark,
+body.dark-mode strong,
+body.dark-mode b,
+body.dark-mode .h2,
+body.dark-mode .modal-title {
+    color: #F8FAFC !important;
+}
+
+body.dark-mode .text-muted,
+body.dark-mode small.text-muted {
+    color: #94A3B8 !important;
+}
+
+body.dark-mode .text-secondary {
+    color: #CBD5E1 !important;
+}
+
+body.dark-mode .bg-light,
+body.dark-mode .input-group-text.bg-light,
+body.dark-mode .modal-footer.bg-light {
+    background-color: #0B1329 !important;
+    color: #F1F5F9 !important;
+    border-color: var(--tecnm-border) !important;
+}
+
+body.dark-mode .table-tecnm {
+    color: #F1F5F9 !important;
+}
+
+body.dark-mode .table-tecnm thead th {
+    background-color: #0E1830 !important;
+    color: #CBD5E1 !important;
+    border-color: var(--tecnm-border) !important;
+}
+
+body.dark-mode .table-tecnm tbody td {
+    border-color: var(--tecnm-border) !important;
+    color: #F1F5F9 !important;
+    background-color: transparent !important;
+}
+
+body.dark-mode .form-control,
+body.dark-mode .form-select,
+body.dark-mode .form-control-custom,
+body.dark-mode .form-select-custom {
+    background-color: #0B1329 !important;
+    color: #F8FAFC !important;
+    border-color: var(--tecnm-border) !important;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus,
+body.dark-mode .form-control-custom:focus,
+body.dark-mode .form-select-custom:focus {
+    background-color: #0B1329 !important;
+    color: #FFFFFF !important;
+    border-color: var(--tecnm-gold) !important;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25) !important;
+}
+
+/* Global Reset */
+* {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--tecnm-light);
+    color: var(--tecnm-text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-tecnm {
+    background: var(--tecnm-accent-gradient);
+    border-bottom: 2px solid var(--tecnm-gold);
+    box-shadow: 0 4px 20px rgba(16, 34, 62, 0.15);
+}
+
+.nav-link-custom {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.nav-link-custom:hover, .nav-link-custom.active {
+    color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+.btn-tecnm-primary {
+    background: var(--tecnm-accent-gradient);
+    color: #FFFFFF;
+    border: none;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.6rem 1.4rem;
+    box-shadow: 0 4px 12px rgba(27, 57, 106, 0.25);
+    transition: all 0.25s ease;
+}
+
+.btn-tecnm-primary:hover {
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(27, 57, 106, 0.35);
+}
+
+.btn-tecnm-gold {
+    background: var(--tecnm-gold-gradient);
+    color: #10223E;
+    border: none;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 0.6rem 1.4rem;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    transition: all 0.25s ease;
+}
+
+.card-tecnm {
+    background: var(--tecnm-card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--tecnm-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.table-tecnm {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.table-tecnm thead th {
+    background-color: #F1F5F9;
+    color: var(--tecnm-text-muted);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--tecnm-border);
+    padding: 0.85rem 1rem;
+}
+
+.table-tecnm tbody td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--tecnm-border);
+    vertical-align: middle;
+}
+
+.badge-priority-alta {
+    background: #FEE2E2;
+    color: #B91C1C;
+    font-weight: 700;
+    border-radius: 6px;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid #FECACA;
+}
+
+.badge-priority-normal {
+    background: #F1F5F9;
+    color: #475569;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid #E2E8F0;
+}
+
+.badge-status-abierto {
+    background: #FEF3C7;
+    color: #B45309;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.35rem 0.65rem;
+}
+
+.badge-status-progreso {
+    background: #E0F2FE;
+    color: #0369A1;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.35rem 0.65rem;
+}
+
+.badge-status-resuelto {
+    background: #DCFCE7;
+    color: #15803D;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.35rem 0.65rem;
+}

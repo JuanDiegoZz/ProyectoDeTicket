@@ -1,85 +1,59 @@
-# DESIGN.md — Especificación de Arquitectura y Diseño del Sistema
+# DESIGN.md — Especificación de Arquitectura Desacoplada (Backend REST & Frontend Vue 3)
 ## Sistema de Gestión de Tickets de Soporte TI — TecNM Campus Monclova
 
 ---
 
-### 1. Resumen Ejecutivo y Arquitectura General
-El sistema implementa una arquitectura desacoplada basada en **Clean Architecture**, **SOLID** y el patrón **ASP.NET Core MVC** bajo **.NET 10** y **PostgreSQL 18**.
+### 1. Resumen Ejecutivo y Esquema de Arquitectura
+El sistema implementa una arquitectura desacoplada y dividida en dos aplicaciones físicas totalmente independientes: un **Backend API REST en .NET 10 / C#** y un **Frontend SPA en Vue 3**.
 
 ```
-                           +------------------------------------------+
-                           |           Capa de Presentación           |
-                           |   (Controllers, Razor Views, Assets)     |
-                           +--------------------+---------------------+
-                                                |
-                                                v
-                           +--------------------+---------------------+
-                           |            Capa Application              |
-                           |   (Interfaces, ViewModels, PagedResult)  |
-                           +--------------------+---------------------+
-                                                |
-                                                v
-                           +--------------------+---------------------+
-                           |              Capa Domain                 |
-                           |        (Entities, Enums de Negocio)      |
-                           +--------------------+---------------------+
-                                                ^
-                                                |
-                           +--------------------+---------------------+
-                           |          Capa Infrastructure             |
-                           |    (EF Core DbContext, Services, Npgsql) |
-                           +------------------------------------------+
+                 ┌─────────────────────────────────┐
+                 │          Vue 3 SPA              │
+                 │      (Frontend Client)          │
+                 └────────────────┬────────────────┘
+                                  │
+                             HTTP / JSON
+                       (CORS / Credentials)
+                                  │
+                                  ▼
+                 ┌─────────────────────────────────┐
+                 │       .NET 10 API REST          │
+                 │   (Clean Architecture Backend)  │
+                 └────────────────┬────────────────┘
+                                  │
+                               EF Core
+                                  │
+                                  ▼
+                 ┌─────────────────────────────────┐
+                 │  PostgreSQL 18 / SQLite DB      │
+                 │          (snake_case)           │
+                 └─────────────────────────────────┘
 ```
 
 ---
 
-### 2. Estructura de Capas y Responsabilidades
+### 2. Responsabilidades por Capa
 
-#### 2.1. Capa de Dominio (`Domain/`)
-- **`Domain/Entities/`**:
-  - `Usuario.cs`: Representa los actores del sistema (Solicitante, Técnico, Administrador).
-  - `Ticket.cs`: Entidad central con auditoría, priorización y calificación de servicio (1 a 5 estrellas).
-  - `Categoria.cs`: Clasificación dinámica de fallas técnicas.
-  - `Ubicacion.cs`: Edificios y áreas del campus.
-  - `NotaTicket.cs`: Bitácora cronológica e historial de eventos por incidencia.
-- **`Domain/Enums/CommonEnums.cs`**:
-  - `RolUsuario`: `Solicitante`, `Tecnico`, `Administrador`.
-  - `TipoSolicitante`: `Alumno`, `Profesor`, `Administrativo`, `Desconocido`.
-  - `PrioridadTicket`: `Baja`, `Normal`, `Alta`, `Urgente`.
-  - `EstadoTicket`: `Abierto`, `EnProgreso`, `Resuelto`, `Cancelado`.
+#### 2.1. Frontend (Vue 3 SPA)
+- **Capa de Vistas (`views/`)**: Renderiza los dashboards, formularios, tablas responsivas y vistas por rol (*Administrador, Técnico, Solicitante*).
+- **Capa de Componentes (`components/`)**: Componentes de navegación e interfaz compartida.
+- **Capa de Servicios (`services/`)**: Centraliza todas las llamadas `fetch` a los endpoints REST sin dispersar lógica de red en las vistas.
+- **Estilos (`assets/styles.css`)**: Soporte nativo para modo claro y modo oscuro.
 
-#### 2.2. Capa de Aplicación (`Application/`)
-- **`Application/Common/Interfaces/`**:
-  - `ITicketService`: Contrato para el ciclo de vida del ticket, filtrado dinámico y paginación en servidor.
-  - `ICatalogoService`: Contrato para la administración de categorías y ubicaciones dinámicas.
-  - `IEmailClassifierService`: Contrato para la clasificación inteligente de correos por Regex.
-- **`Application/Common/Models/`**:
-  - `PagedResult<T>`: Contenedor genérico para paginación segura desde base de datos.
-- **`Application/ViewModels/`**:
-  - `LoginViewModel`, `RegistroViewModel`, `CrearTicketViewModel`, `DashboardAdminViewModel`.
-
-#### 2.3. Capa de Infraestructura (`Infrastructure/`)
-- **`Infrastructure/Data/ApplicationDbContext.cs`**:
-  - Configuración Fluent API con convención estricta de nombres en `snake_case` para PostgreSQL 18.
-  - Índices en `email`, `estado`, `prioridad`, `fecha_creacion` y claves foráneas.
-  - Sembrado automático de catálogos y usuario Administrador inicial.
-- **`Infrastructure/Services/`**:
-  - `TicketService.cs`: Consultas optimizadas con LINQ, `Skip()` y `Take()` para paginación y filtros combinados.
-  - `CatalogoService.cs`: Operaciones CRUD y alternancia de alta/baja lógica.
-  - `EmailClassifierService.cs`: Motor de expresiones regulares para correos institucionales `@monclova.tecnm.mx`.
-
-#### 2.4. Capa de Presentación (`Controllers/` y `Views/`)
-- **`Controllers/`**:
-  - `TicketsController.cs`: Flujos de tickets, detalle, cambios de estado, notas, reasignación y exportación CSV con BOM.
-  - `AccountController.cs`: Autenticación por Cookies, registro con validación Regex y gestión de técnicos.
-  - `CatalogosController.cs`: Administración de categorías y ubicaciones (exclusivo para Administrador).
-- **`Views/`**:
-  - Vistas Razor responsivas con Bootstrap 5, Chart.js y soporte de Modo Claro / Modo Oscuro.
+#### 2.2. Backend (API REST .NET 10)
+- **Controladores (`Controllers/`)**: Exponen endpoints REST HTTP con respuestas JSON en `camelCase`.
+- **Dominio (`Domain/`)**: Entidades POCO (`Usuario`, `Ticket`, `Categoria`, `Ubicacion`, `NotaTicket`) y Enums.
+- **Aplicación (`Application/`)**: Interfaces de servicio, ViewModels/DTOs y paginación en servidor (`PagedResult<T>`).
+- **Infraestructura (`Infrastructure/`)**: Contexto EF Core (`ApplicationDbContext`), repositorios de servicio y lógica de negocio.
 
 ---
 
-### 3. Reglas de Modificación para Futuros Desarrolladores y Agentes de IA
-1. **Regla de Dependencias:** La capa de `Domain` nunca debe referenciar a `Infrastructure` ni a `Controllers`.
-2. **Consultas y Paginación:** Toda nueva consulta sobre listados debe implementarse en `ITicketService` / `Infrastructure` utilizando `PagedResult<T>` para evitar sobrecarga de memoria.
-3. **Persistencia en Base de Datos:** Los nombres de nuevas tablas, columnas o índices en `ApplicationDbContext` deben seguir el formato `snake_case`.
-4. **Seguridad y Roles:** Los endpoints administrativos deben verificar explícitamente el rol de `Administrador` antes de ejecutar cambios en catálogos o personal.
+### 3. Matriz de Módulos y Documentación Asociada
+
+| Módulo | Tipo | Ubicación | Documentación .md |
+| :--- | :--- | :--- | :--- |
+| **API REST Backend** | API | `Backend/API/` | [`Backend/README.md`](file:///c:/Users/juand/Desktop/Tickets/Backend/README.md) |
+| **Vue 3 SPA Frontend** | SPA | `Frontend/` | [`Frontend/README.md`](file:///c:/Users/juand/Desktop/Tickets/Frontend/README.md) |
+| **Controladores API** | REST | `Backend/API/Controllers/` | Ver Endpoints en `Backend/README.md` |
+| **Servicios Frontend** | HTTP | `Frontend/src/services/` | Ver Servicios en `Frontend/README.md` |
+| **Modelos de Dominio** | POCO | `Backend/API/Domain/` | [`DESIGN.md`](file:///c:/Users/juand/Desktop/Tickets/DESIGN.md) |
