@@ -27,10 +27,21 @@ export default {
         orden: '',
         pagina: 1
       },
+      mostrarFiltrosAvanzados: false,
       cargando: true
     };
   },
   computed: {
+    filtrosActivosCount() {
+      let count = 0;
+      if (this.filtros.fechaInicio) count++;
+      if (this.filtros.fechaFin) count++;
+      if (this.filtros.ubicacionId) count++;
+      if (this.filtros.categoriaId) count++;
+      if (this.filtros.estado) count++;
+      if (this.filtros.prioridad) count++;
+      return count;
+    },
     chartEstadosData() {
       if (!this.metrics) return null;
       return {
@@ -206,60 +217,82 @@ export default {
         </div>
       </div>
 
-      <!-- Tabla y Filtros -->
+      <!-- Tabla y Filtros Avanzados -->
       <div class="card card-tecnm border-0 shadow-sm overflow-hidden mb-4">
         <div class="card-header bg-white py-3 border-bottom">
-          <form @submit.prevent="aplicarFiltros" class="row g-2 align-items-center">
-            <div class="col-12 col-md-3">
-              <input type="text" v-model="filtros.busqueda" class="form-control form-control-sm" placeholder="Buscar folio, solicitante, aula..." />
+          <form @submit.prevent="aplicarFiltros">
+            <!-- Barra Superior: Búsqueda Rápida + Acciones -->
+            <div class="row g-2 align-items-center mb-2">
+              <div class="col-12 col-md-5">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                  <input type="text" v-model="filtros.busqueda" class="form-control border-start-0" placeholder="Buscar por folio, asunto, solicitante, aula..." />
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <select v-model="filtros.orden" class="form-select form-select-sm" @change="aplicarFiltros">
+                  <option value="">Orden: Más Recientes</option>
+                  <option value="fecha_asc">Orden: Más Antiguos</option>
+                  <option value="prioridad_desc">Orden: Prioridad Alta</option>
+                  <option value="folio_asc">Orden: Folio Ascendente</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4 d-flex justify-content-end gap-2">
+                <button type="button" @click="mostrarFiltrosAvanzados = !mostrarFiltrosAvanzados" class="btn btn-sm btn-outline-secondary px-3">
+                  <i class="bi bi-sliders me-1"></i>{{ mostrarFiltrosAvanzados ? 'Ocultar Filtros' : 'Filtros Avanzados' }}
+                  <span v-if="filtrosActivosCount > 0" class="badge bg-primary rounded-pill ms-1">{{ filtrosActivosCount }}</span>
+                </button>
+                <button type="submit" class="btn btn-sm btn-tecnm-primary px-3 fw-bold"><i class="bi bi-filter me-1"></i>Filtrar</button>
+                <button type="button" @click="limpiarFiltros" class="btn btn-sm btn-outline-danger" title="Limpiar Filtros"><i class="bi bi-arrow-counterclockwise"></i></button>
+              </div>
             </div>
-            <div class="col-6 col-md-2">
-              <input type="date" v-model="filtros.fechaInicio" class="form-control form-control-sm" title="Fecha Inicial" />
-            </div>
-            <div class="col-6 col-md-2">
-              <input type="date" v-model="filtros.fechaFin" class="form-control form-control-sm" title="Fecha Final" />
-            </div>
-            <div class="col-6 col-md-2">
-              <select v-model="filtros.ubicacionId" class="form-select form-select-sm">
-                <option value="">-- Edificio / Ubicación --</option>
-                <option v-for="u in ubicaciones" :key="u.id" :value="u.id">{{ u.nombre }}</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-2">
-              <select v-model="filtros.categoriaId" class="form-select form-select-sm">
-                <option value="">-- Categoría --</option>
-                <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-2">
-              <select v-model="filtros.estado" class="form-select form-select-sm">
-                <option value="">-- Estado --</option>
-                <option value="Abierto">Abierto</option>
-                <option value="EnProgreso">En Progreso</option>
-                <option value="Resuelto">Resuelto</option>
-                <option value="Cancelado">Cancelado</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-2">
-              <select v-model="filtros.prioridad" class="form-select form-select-sm">
-                <option value="">-- Prioridad --</option>
-                <option value="Baja">Baja</option>
-                <option value="Normal">Normal</option>
-                <option value="Alta">Alta</option>
-                <option value="Urgente">Urgente</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-2">
-              <select v-model="filtros.orden" class="form-select form-select-sm">
-                <option value="">Recientes</option>
-                <option value="fecha_asc">Antiguos</option>
-                <option value="prioridad_desc">Prioridad Alta</option>
-                <option value="folio_asc">Folio Asc</option>
-              </select>
-            </div>
-            <div class="col-12 col-md-6 d-flex gap-2">
-              <button type="submit" class="btn btn-sm btn-tecnm-primary px-3 fw-bold"><i class="bi bi-filter me-1"></i>Filtrar Reportes</button>
-              <button type="button" @click="limpiarFiltros" class="btn btn-sm btn-outline-secondary px-3"><i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar Filtros</button>
+
+            <!-- Desplegable de Filtros Avanzados -->
+            <div v-show="mostrarFiltrosAvanzados" class="p-3 bg-light rounded-3 mt-3 border transition-all">
+              <div class="row g-3">
+                <div class="col-6 col-md-3">
+                  <label class="form-label text-muted extra-small fw-bold text-uppercase mb-1">Fecha Inicial</label>
+                  <input type="date" v-model="filtros.fechaInicio" class="form-control form-control-sm" />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label text-muted extra-small fw-bold text-uppercase mb-1">Fecha Final</label>
+                  <input type="date" v-model="filtros.fechaFin" class="form-control form-control-sm" />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label text-muted extra-small fw-bold text-uppercase mb-1">Edificio / Ubicación</label>
+                  <select v-model="filtros.ubicacionId" class="form-select form-select-sm">
+                    <option value="">Todos los Edificios</option>
+                    <option v-for="u in ubicaciones" :key="u.id" :value="u.id">{{ u.nombre }}</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label text-muted extra-small fw-bold text-uppercase mb-1">Categoría</label>
+                  <select v-model="filtros.categoriaId" class="form-select form-select-sm">
+                    <option value="">Todas las Categorías</option>
+                    <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label text-muted extra-small fw-bold text-uppercase mb-1">Estado</label>
+                  <select v-model="filtros.estado" class="form-select form-select-sm">
+                    <option value="">Todos los Estados</option>
+                    <option value="Abierto">Abierto</option>
+                    <option value="EnProgreso">En Progreso</option>
+                    <option value="Resuelto">Resuelto</option>
+                    <option value="Cancelado">Cancelado</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label text-muted extra-small fw-bold text-uppercase mb-1">Prioridad</label>
+                  <select v-model="filtros.prioridad" class="form-select form-select-sm">
+                    <option value="">Todas las Prioridades</option>
+                    <option value="Baja">Baja</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Urgente">Urgente</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </form>
         </div>
