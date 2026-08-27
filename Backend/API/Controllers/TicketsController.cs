@@ -39,9 +39,12 @@ public class TicketsController : ControllerBase
         var rolClaim = User.FindFirstValue(ClaimTypes.Role);
         var emailClaim = User.FindFirstValue(ClaimTypes.Email);
 
-        if (int.TryParse(idClaim, out int id) && Enum.TryParse<RolUsuario>(rolClaim, out var rol))
+        if (int.TryParse(idClaim, out int id))
         {
-            return (id, rol, emailClaim);
+            if (Enum.TryParse<RolUsuario>(rolClaim, true, out var rol))
+            {
+                return (id, rol, emailClaim);
+            }
         }
         return (null, null, null);
     }

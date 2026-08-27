@@ -127,8 +127,8 @@ export default {
         <button @click="$emit('navigate', 'home')" class="btn btn-outline-secondary rounded-3"><i class="bi bi-arrow-left me-1"></i>Volver</button>
       </div>
 
-      <div v-if="mensajeAccion" class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i>{{ mensajeAccion }}</div>
-      <div v-if="errorAccion" class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorAccion }}</div>
+      <div v-if="mensajeAccion" class="alert alert-success alert-dismissible fade show mb-4"><i class="bi bi-check-circle-fill me-2"></i>{{ mensajeAccion }}</div>
+      <div v-if="errorAccion" class="alert alert-danger alert-dismissible fade show mb-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorAccion }}</div>
 
       <div class="row g-4">
         <!-- Columna Izquierda: Información de la Incidencia -->
