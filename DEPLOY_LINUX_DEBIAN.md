@@ -1,22 +1,20 @@
-# 📘 MANUAL DE DESPLIEGUE Y ADMINISTRACIÓN EN PRODUCCIÓN
-## Sistema de Gestión de Tickets de Soporte TI - TecNM Monclova
-**Entorno de Producción:** Servidor Linux (Debian 12 "Bookworm" / Debian 13 "Trixie")  
-**Arquitectura:** Contenedores Docker + Docker Compose + PostgreSQL 16 + ASP.NET MVC (.NET 8)
+# 📘 MANUAL DE DESPLIEGUE EN PRODUCCIÓN (LINUX DEBIAN 12 / 13)
+## Sistema de Gestión de Tickets de Soporte TI — TecNM Campus Monclova
+**Entorno de Producción:** Servidor Linux Debian 12 / 13  
+**Arquitectura Desacoplada:** Backend API REST .NET 10 + Frontend Single Page Application (Vue 3 / Nginx) + PostgreSQL 18  
 
 ---
 
 ### 1. REQUISITOS PREVIOS EN EL SERVIDOR DEBIAN
-Asegúrate de tener acceso SSH con permisos de `sudo` en tu servidor Debian.
 
 #### 1.1. Actualizar el sistema e instalar dependencias básicas
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y curl ufw git fail2ban apt-transport-https ca-certificates gnupg lsb-release
+sudo apt install -y curl ufw git fail2ban apt-transport-https ca-certificates gnupg lsb-release nginx
 ```
 
 #### 1.2. Instalar Docker Engine y Docker Compose Oficial
 ```bash
-# Agregar repositorio oficial de Docker
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
@@ -24,103 +22,139 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
 
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-# Habilitar el servicio Docker
 sudo systemctl enable --now docker
 ```
 
 ---
 
-### 2. CONFIGURACIÓN DE SEGURIDAD Y FIREWALL (UFW + Fail2ban)
-Para cumplir con el objetivo de **entorno seguro y prevención de ataques**:
+### 2. CONFIGURACIÓN DE SEGURIDAD Y FIREWALL (UFW + FAIL2BAN)
 
 ```bash
-# 1. Reglas por defecto: denegar tráfico entrante, permitir saliente
+# 1. Reglas UFW de firewall
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
+sudo ufw allow 22/tcp comment 'Acceso SSH'
+sudo ufw allow 80/tcp comment 'HTTP Nginx Frontend SPA'
+sudo ufw allow 443/tcp comment 'HTTPS SSL'
+sudo ufw allow 5000/tcp comment 'Backend API REST .NET 10 (Interno/Reverse Proxy)'
 
-# 2. Permitir acceso SSH (Puerto 22)
-sudo ufw allow 22/tcp comment 'Acceso SSH Seguro'
-
-# 3. Permitir el puerto de la aplicación Web (Puerto 8080 o HTTP 80)
-sudo ufw allow 8080/tcp comment 'Sistema de Tickets TecNM'
-
-# 4. Aislar PostgreSQL: NUNCA abrir el puerto 5432 a Internet.
-# Docker maneja la comunicación interna de forma aislada a través de su red bridge 'tickets_network'.
-
-# 5. Activar el Firewall
+# 2. Activar UFW y Fail2ban
 sudo ufw enable
-sudo ufw status verbose
-
-# 6. Activar Fail2ban para mitigar ataques de fuerza bruta
 sudo systemctl enable --now fail2ban
 ```
 
 ---
 
-### 3. DESPLIEGUE DEL SISTEMA CON DOCKER COMPOSE
+### 3. DESPLIEGUE DEL BACKEND Y POSTGRESQL 18 (DOCKER COMPOSE)
 
-#### 3.1. Copiar los archivos del proyecto al servidor
-Copia la carpeta del proyecto a `/opt/tickets-tecnm` o clónala desde tu repositorio:
+#### 3.1. Clonar repositorio y navegar a la API
 ```bash
-sudo mkdir -p /opt/tickets-tecnm
-cd /opt/tickets-tecnm
+git clone https://github.com/JuanDiegoZz/ProyectoDeTicket.git /var/www/tickets
+cd /var/www/tickets/Backend/API
 ```
 
-#### 3.2. Estructura de archivos requerida en el servidor:
-```text
-/opt/tickets-tecnm/
-├── Controllers/
-├── Data/
-├── Models/
-├── Properties/
-├── Services/
-├── ViewModels/
-├── Views/
-├── wwwroot/
-├── appsettings.json
-├── docker-compose.yml
-├── Dockerfile
-└── TicketsApp.csproj
+#### 3.2. Estructura de `docker-compose.yml` para .NET 10 y PostgreSQL 18
+```yaml
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres:18-alpine
+    container_name: tecnm_postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: tickets_tecnm_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: TuPasswordSeguro2026!
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tickets_network
+
+  api_backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tecnm_api_backend
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres_db;Database=tickets_tecnm_db;Username=postgres;Password=TuPasswordSeguro2026!
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres_db
+    networks:
+      - tickets_network
+
+volumes:
+  postgres_data:
+
+networks:
+  tickets_network:
+    driver: bridge
 ```
 
-#### 3.3. Compilar y levantar los contenedores
-Ejecuta en la terminal de Debian:
+#### 3.3. Iniciar Contenedores Backend
 ```bash
 docker compose up -d --build
-```
-
-#### 3.4. Verificar que los servicios estén activos y saludables:
-```bash
 docker compose ps
-docker compose logs -f web
 ```
 
 ---
 
-### 4. GESTIÓN Y MANTENIMIENTO EN DEBIAN
+### 4. DESPLIEGUE DEL FRONTEND VUE 3 SPA (NGINX)
 
-#### Respaldo automático de la Base de Datos PostgreSQL:
-```bash
-# Realizar un backup de la base de datos a un archivo .sql
-docker exec -t tickets_postgres_db pg_dump -U postgres tickets_db > backup_tickets_$(date +%Y%m%d).sql
+#### 4.1. Configuración de Nginx (`/etc/nginx/sites-available/tickets-frontend`)
+```nginx
+server {
+    listen 80;
+    server_name tickets.monclova.tecnm.mx;
+
+    root /var/www/tickets/Frontend;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Proxy inverso para la API REST .NET 10
+    location /api/ {
+        proxy_pass http://localhost:5000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'keep-alive';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 ```
 
-#### Restauración de respaldo:
+#### 4.2. Activar sitio en Nginx y reiniciar
 ```bash
-cat backup_tickets_20260814.sql | docker exec -i tickets_postgres_db psql -U postgres -d tickets_db
-```
-
-#### Reiniciar o actualizar la aplicación tras cambios de código:
-```bash
-docker compose down
-docker compose up -d --build
+sudo ln -s /etc/nginx/sites-available/tickets-frontend /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
 ---
 
-### 5. ACCESO AL SISTEMA Y CREDENCIALES
-- **URL de acceso:** `http://<IP_DEL_SERVIDOR_LINUX>:8080`
-- **Administrador TI:** `admin@monclova.tecnm.mx` | `Admin123!`
-- **Técnico de Soporte:** `carlos.tecnico@monclova.tecnm.mx` | `Tecnico123!`
-- **Profesor:** `ruben.rr@monclova.tecnm.mx` | `Docente123!`
+### 5. RESPALDOS AUTOMÁTICOS CRONTAB (POSTGRESQL 18)
+
+Crear script de respaldo `/var/www/tickets/backup_db.sh`:
+```bash
+#!/bin/bash
+FECHA=$(date +%Y%m%d_%H%M%S)
+DIR_BACKUP="/var/backups/tickets_db"
+mkdir -p $DIR_BACKUP
+docker exec -t tecnm_postgres_db pg_dump -U postgres tickets_tecnm_db | gzip > $DIR_BACKUP/backup_$FECHA.sql.gz
+find $DIR_BACKUP -type f -mtime +30 -delete
+```
+
+Hacer ejecutable y programar a las 2:00 AM diariamente:
+```bash
+chmod +x /var/www/tickets/backup_db.sh
+(crontab -l 2>/dev/null; echo "0 2 * * * /var/var/tickets/backup_db.sh") | crontab -
+```
