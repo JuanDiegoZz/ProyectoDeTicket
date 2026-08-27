@@ -9,7 +9,7 @@ El sistema implementa una arquitectura desacoplada y dividida en dos aplicacione
 ```
                  ┌─────────────────────────────────┐
                  │          Vue 3 SPA              │
-                 │      (Frontend Client)          │
+                 │   (vue-chartjs + Chart.js)      │
                  └────────────────┬────────────────┘
                                   │
                              HTTP / JSON

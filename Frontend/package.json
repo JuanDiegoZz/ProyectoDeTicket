@@ -1,0 +1,18 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "El Frontend es una aplicación **Single Page Application (SPA)** desarrollada en **Vue 3** que se encarga exclusivamente de la interfaz de usuario, navegación reactiva, formularios, gráficas analíticas y consumo de la API REST del Backend mediante HTTP / JSON.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "vue": "^3.5.42",
+    "vue-chartjs": "^5.3.4"
+  }
+}

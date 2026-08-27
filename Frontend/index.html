@@ -12,11 +12,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <!-- Estilos Custom -->
   <link rel="stylesheet" href="/src/assets/styles.css">
-  <!-- Vue 3 ESM -->
+  <!-- ImportMap para dependencias npm (Vue 3, Chart.js, vue-chartjs) -->
   <script type="importmap">
     {
       "imports": {
-        "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+        "vue": "/node_modules/vue/dist/vue.esm-browser.js",
+        "chart.js": "/node_modules/chart.js/auto/auto.js",
+        "vue-chartjs": "/node_modules/vue-chartjs/dist/index.js"
       }
     }
   </script>
@@ -26,8 +28,6 @@
 
   <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Chart.js para métricas analíticas -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
   <script type="module" src="/src/main.js"></script>
 </body>

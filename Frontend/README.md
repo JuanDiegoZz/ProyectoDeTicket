@@ -9,17 +9,23 @@ El Frontend es una aplicación **Single Page Application (SPA)** desarrollada en
 ```
 Frontend/
 ├── index.html
+├── package.json (vue, chart.js, vue-chartjs)
 ├── src/
 │   ├── assets/
 │   │   └── styles.css (Tema Claro y Modo Oscuro)
+│   ├── components/
+│   │   ├── NavbarComponent.js
+│   │   └── charts/
+│   │       ├── DoughnutChart.js
+│   │       ├── DoughnutChart.md
+│   │       ├── BarChart.js
+│   │       └── BarChart.md
 │   ├── services/
 │   │   ├── apiConfig.js (Configuración centralizada de Fetch API)
 │   │   ├── authService.js
 │   │   ├── catalogoService.js
 │   │   ├── ticketService.js
 │   │   └── tecnicoService.js
-│   ├── components/
-│   │   └── NavbarComponent.js
 │   ├── views/
 │   │   ├── LoginView.js
 │   │   ├── RegistroView.js

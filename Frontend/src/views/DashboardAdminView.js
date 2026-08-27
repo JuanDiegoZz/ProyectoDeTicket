@@ -1,8 +1,14 @@
 import { ticketService } from '../services/ticketService.js';
 import { catalogoService } from '../services/catalogoService.js';
+import DoughnutChart from '../components/charts/DoughnutChart.js';
+import BarChart from '../components/charts/BarChart.js';
 
 export default {
   name: 'DashboardAdminView',
+  components: {
+    DoughnutChart,
+    BarChart
+  },
   emits: ['navigate'],
   data() {
     return {
@@ -19,11 +25,54 @@ export default {
         orden: '',
         pagina: 1
       },
-      cargando: true,
-      chartEstadosInstance: null,
-      chartUbicacionesInstance: null,
-      chartCategoriasInstance: null
+      cargando: true
     };
+  },
+  computed: {
+    chartEstadosData() {
+      if (!this.metrics) return null;
+      return {
+        labels: ['Abiertos', 'En Progreso', 'Resueltos'],
+        datasets: [{
+          data: [this.metrics.ticketsAbiertos, this.metrics.ticketsEnProgreso, this.metrics.ticketsResueltos],
+          backgroundColor: ['#F59E0B', '#0284C7', '#10B981'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      };
+    },
+    chartUbicacionesData() {
+      if (!this.metrics || !this.metrics.fallasPorUbicacion) return null;
+      return {
+        labels: this.metrics.fallasPorUbicacion.map(x => x.ubicacion),
+        datasets: [{
+          label: 'Tickets Reportados',
+          data: this.metrics.fallasPorUbicacion.map(x => x.cantidad),
+          backgroundColor: '#1B396A',
+          borderRadius: 6
+        }]
+      };
+    },
+    chartCategoriasData() {
+      if (!this.metrics || !this.metrics.fallasPorCategoria) return null;
+      return {
+        labels: this.metrics.fallasPorCategoria.map(x => x.categoria),
+        datasets: [{
+          label: 'Tickets',
+          data: this.metrics.fallasPorCategoria.map(x => x.cantidad),
+          backgroundColor: '#D4AF37',
+          borderRadius: 6
+        }]
+      };
+    },
+    chartCategoriasOptions() {
+      return {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+      };
+    }
   },
   async created() {
     await this.cargarCatalogos();
@@ -41,7 +90,6 @@ export default {
       try {
         this.metrics = await ticketService.obtenerDashboardAdmin();
         this.pagedResult = await ticketService.obtenerTickets(this.filtros);
-        this.$nextTick(() => this.renderCharts());
       } catch (e) {
         console.error(e);
       } finally {
@@ -63,73 +111,13 @@ export default {
     },
     exportarCsv() {
       ticketService.descargarExportacionCsv(this.filtros);
-    },
-    renderCharts() {
-      if (!this.metrics || typeof Chart === 'undefined') return;
-
-      // 1. Chart Estados
-      const canvasEstados = document.getElementById('chartEstadosVue');
-      if (canvasEstados) {
-        if (this.chartEstadosInstance) this.chartEstadosInstance.destroy();
-        this.chartEstadosInstance = new Chart(canvasEstados, {
-          type: 'doughnut',
-          data: {
-            labels: ['Abiertos', 'En Progreso', 'Resueltos'],
-            datasets: [{
-              data: [this.metrics.ticketsAbiertos, this.metrics.ticketsEnProgreso, this.metrics.ticketsResueltos],
-              backgroundColor: ['#F59E0B', '#0284C7', '#10B981'],
-              borderWidth: 2,
-              borderColor: '#ffffff'
-            }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '70%' }
-        });
-      }
-
-      // 2. Chart Ubicaciones
-      const canvasUbicaciones = document.getElementById('chartUbicacionesVue');
-      if (canvasUbicaciones) {
-        if (this.chartUbicacionesInstance) this.chartUbicacionesInstance.destroy();
-        this.chartUbicacionesInstance = new Chart(canvasUbicaciones, {
-          type: 'bar',
-          data: {
-            labels: this.metrics.fallasPorUbicacion.map(x => x.ubicacion),
-            datasets: [{
-              label: 'Tickets Reportados',
-              data: this.metrics.fallasPorUbicacion.map(x => x.cantidad),
-              backgroundColor: '#1B396A',
-              borderRadius: 6
-            }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-      }
-
-      // 3. Chart Categorías
-      const canvasCategorias = document.getElementById('chartCategoriasVue');
-      if (canvasCategorias) {
-        if (this.chartCategoriasInstance) this.chartCategoriasInstance.destroy();
-        this.chartCategoriasInstance = new Chart(canvasCategorias, {
-          type: 'bar',
-          data: {
-            labels: this.metrics.fallasPorCategoria.map(x => x.categoria),
-            datasets: [{
-              label: 'Tickets',
-              data: this.metrics.fallasPorCategoria.map(x => x.cantidad),
-              backgroundColor: '#D4AF37',
-              borderRadius: 6
-            }]
-          },
-          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-      }
     }
   },
   template: `
     <div>
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-          <h3 class="fw-bold mb-0 text-dark">Panel de Control TI (Vue 3)</h3>
+          <h3 class="fw-bold mb-0 text-dark">Panel de Control TI (Vue 3 + vue-chartjs)</h3>
           <p class="text-muted mb-0 small">Métricas analíticas, auditoría y supervisión en tiempo real</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
@@ -188,24 +176,30 @@ export default {
         </div>
       </div>
 
-      <!-- Charts -->
-      <div class="row g-4 mb-4">
+      <!-- Charts Reutilizables con vue-chartjs -->
+      <div class="row g-4 mb-4" v-if="metrics">
         <div class="col-lg-4">
           <div class="card card-tecnm h-100 border-0 shadow-sm p-3">
             <h6 class="fw-bold text-dark border-bottom pb-2"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Estado General</h6>
-            <div style="height: 220px; position: relative;"><canvas id="chartEstadosVue"></canvas></div>
+            <div style="height: 220px; position: relative;">
+              <doughnut-chart v-if="chartEstadosData" :chart-data="chartEstadosData" />
+            </div>
           </div>
         </div>
         <div class="col-lg-4">
           <div class="card card-tecnm h-100 border-0 shadow-sm p-3">
             <h6 class="fw-bold text-dark border-bottom pb-2"><i class="bi bi-bar-chart-fill text-danger me-2"></i>Fallas por Edificio</h6>
-            <div style="height: 220px; position: relative;"><canvas id="chartUbicacionesVue"></canvas></div>
+            <div style="height: 220px; position: relative;">
+              <bar-chart v-if="chartUbicacionesData" :chart-data="chartUbicacionesData" />
+            </div>
           </div>
         </div>
         <div class="col-lg-4">
           <div class="card card-tecnm h-100 border-0 shadow-sm p-3">
             <h6 class="fw-bold text-dark border-bottom pb-2"><i class="bi bi-tags-fill text-warning me-2"></i>Fallas por Categoría</h6>
-            <div style="height: 220px; position: relative;"><canvas id="chartCategoriasVue"></canvas></div>
+            <div style="height: 220px; position: relative;">
+              <bar-chart v-if="chartCategoriasData" :chart-data="chartCategoriasData" :chart-options="chartCategoriasOptions" />
+            </div>
           </div>
         </div>
       </div>
