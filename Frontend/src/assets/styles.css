@@ -18,6 +18,25 @@
     transition: all 0.3s ease;
 }
 
+/* ==========================================
+   ESTILOS DE IMPRESIÓN OFICIAL (FICHA DE TICKET PDF)
+   ========================================== */
+@media print {
+    nav, footer, button, .toast-container, form {
+        display: none !important;
+    }
+
+    body {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+
+    .card {
+        border: 1px solid #000000 !important;
+        box-shadow: none !important;
+    }
+}
+
 .logo-header-img {
     height: 38px;
     width: auto;

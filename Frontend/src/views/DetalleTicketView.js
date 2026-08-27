@@ -1,5 +1,6 @@
 import { ticketService } from '../services/ticketService.js';
 import { tecnicoService } from '../services/tecnicoService.js';
+import { showToast } from '../components/ToastContainer.js';
 
 export default {
   name: 'DetalleTicketView',
@@ -49,46 +50,54 @@ export default {
         this.tecnicos = await tecnicoService.obtenerTecnicos();
       } catch (e) {}
     },
+    imprimirFicha() {
+      showToast('Generando vista de impresión del ticket...', 'success');
+      setTimeout(() => window.print(), 500);
+    },
     async cambiarEstado() {
       this.errorAccion = null;
       try {
         await ticketService.cambiarEstado(this.ticketId, this.nuevoEstado, this.notaEstado);
-        this.mensajeAccion = 'Estado actualizado correctamente.';
+        showToast('Estado de ticket actualizado correctamente.');
         this.notaEstado = '';
         await this.cargarDetalle();
       } catch (e) {
         this.errorAccion = e.message;
+        showToast(e.message, 'error');
       }
     },
     async reasignarTecnico() {
       this.errorAccion = null;
       try {
         await ticketService.reasignarTecnico(this.ticketId, this.nuevoTecnicoId ? parseInt(this.nuevoTecnicoId) : null, this.motivoReasignacion);
-        this.mensajeAccion = 'Técnico reasignado exitosamente.';
+        showToast('Técnico reasignado exitosamente.');
         this.motivoReasignacion = '';
         await this.cargarDetalle();
       } catch (e) {
         this.errorAccion = e.message;
+        showToast(e.message, 'error');
       }
     },
     async cambiarPrioridad() {
       this.errorAccion = null;
       try {
         await ticketService.cambiarPrioridad(this.ticketId, this.nuevaPrioridad);
-        this.mensajeAccion = 'Prioridad actualizada correctamente.';
+        showToast('Prioridad actualizada correctamente.');
         await this.cargarDetalle();
       } catch (e) {
         this.errorAccion = e.message;
+        showToast(e.message, 'error');
       }
     },
     async calificar() {
       this.errorAccion = null;
       try {
         await ticketService.calificarTicket(this.ticketId, this.estrellas, this.comentarioCalificacion);
-        this.mensajeAccion = '¡Gracias por evaluar nuestro servicio!';
+        showToast('¡Gracias por evaluar nuestro servicio!');
         await this.cargarDetalle();
       } catch (e) {
         this.errorAccion = e.message;
+        showToast(e.message, 'error');
       }
     },
     async agregarNota() {
@@ -96,11 +105,12 @@ export default {
       if (!this.nuevaNotaMensaje.trim()) return;
       try {
         await ticketService.agregarNota(this.ticketId, this.nuevaNotaMensaje);
-        this.mensajeAccion = 'Nota agregada a la bitácora.';
+        showToast('Nota registrada en la bitácora del ticket.');
         this.nuevaNotaMensaje = '';
         await this.cargarDetalle();
       } catch (e) {
         this.errorAccion = e.message;
+        showToast(e.message, 'error');
       }
     }
   },
@@ -124,7 +134,10 @@ export default {
           </div>
           <p class="text-muted small mb-0">{{ ticket.titulo }}</p>
         </div>
-        <button @click="$emit('navigate', 'home')" class="btn btn-outline-secondary rounded-3"><i class="bi bi-arrow-left me-1"></i>Volver</button>
+        <div class="d-flex gap-2">
+          <button @click="imprimirFicha" class="btn btn-outline-primary rounded-3"><i class="bi bi-printer-fill me-1"></i>Imprimir Ficha PDF</button>
+          <button @click="$emit('navigate', 'home')" class="btn btn-outline-secondary rounded-3"><i class="bi bi-arrow-left me-1"></i>Volver</button>
+        </div>
       </div>
 
       <div v-if="mensajeAccion" class="alert alert-success alert-dismissible fade show mb-4"><i class="bi bi-check-circle-fill me-2"></i>{{ mensajeAccion }}</div>
@@ -165,24 +178,29 @@ export default {
             </div>
           </div>
 
-          <!-- Bitácora de Notas -->
+          <!-- Bitácora de Seguimiento Timeline -->
           <div class="card card-tecnm border-0 shadow-sm mb-4">
-            <div class="card-header bg-white py-3 border-bottom"><h6 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-text text-info me-2"></i>Bitácora de Seguimiento y Notas</h6></div>
+            <div class="card-header bg-white py-3 border-bottom"><h6 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history text-info me-2"></i>Línea de Tiempo y Bitácora Auditoría</h6></div>
             <div class="card-body p-4">
-              <div v-if="!ticket.notas.length" class="text-muted small text-center py-3">No hay notas registradas en este ticket aún.</div>
-              <div v-for="n in ticket.notas" :key="n.id" class="p-3 border-bottom mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-bold text-dark small">{{ n.usuario ? n.usuario.nombreCompleto : 'Sistema' }}</span>
-                  <small class="text-muted">{{ new Date(n.fechaCreacion).toLocaleString() }}</small>
+              <div v-if="!ticket.notas.length" class="text-muted small text-center py-3">No hay notas o cambios registrados en este ticket aún.</div>
+              <div class="timeline ps-2 border-start border-2 border-primary ms-2" v-else>
+                <div v-for="n in ticket.notas" :key="n.id" class="position-relative mb-4 ps-3">
+                  <div class="position-absolute top-0 start-0 translate-middle bg-primary rounded-circle" style="width: 12px; height: 12px; margin-top: 6px;"></div>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold text-dark small"><i class="bi bi-person-circle me-1 text-primary"></i>{{ n.usuario ? n.usuario.nombreCompleto : 'Sistema' }}</span>
+                    <small class="text-muted extra-small"><i class="bi bi-clock me-1"></i>{{ new Date(n.fechaCreacion).toLocaleString() }}</small>
+                  </div>
+                  <div class="p-2 bg-light rounded-3 text-secondary small border-start border-3" :class="n.mensaje.includes('Cambio') ? 'border-warning' : 'border-info'">
+                    {{ n.mensaje }}
+                  </div>
                 </div>
-                <p class="mb-0 text-secondary small">{{ n.mensaje }}</p>
               </div>
 
               <!-- Agregar Nota Form -->
               <form @submit.prevent="agregarNota" class="mt-4">
                 <div class="input-group">
-                  <input type="text" v-model="nuevaNotaMensaje" class="form-control form-control-custom" placeholder="Escribe un comentario o actualización..." required />
-                  <button type="submit" class="btn btn-tecnm-primary"><i class="bi bi-send-fill me-1"></i>Agregar Nota</button>
+                  <input type="text" v-model="nuevaNotaMensaje" class="form-control form-control-custom" placeholder="Escribe una observación o actualización..." required />
+                  <button type="submit" class="btn btn-tecnm-primary"><i class="bi bi-send-fill me-1"></i>Registrar Nota</button>
                 </div>
               </form>
             </div>

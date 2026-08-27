@@ -10,11 +10,13 @@ import CategoriasView from './views/CategoriasView.js';
 import UbicacionesView from './views/UbicacionesView.js';
 import GestionTecnicosView from './views/GestionTecnicosView.js';
 import NavbarComponent from './components/NavbarComponent.js';
+import ToastContainer from './components/ToastContainer.js';
 
 export default {
   name: 'App',
   components: {
     NavbarComponent,
+    ToastContainer,
     LoginView,
     RegistroView,
     DashboardAdminView,
@@ -163,6 +165,8 @@ export default {
           <span>&copy; 2026 Instituto Tecnológico Superior de Monclova — Sistema de Gestión de Tickets de Soporte TI</span>
         </div>
       </footer>
+
+      <toast-container />
     </div>
   `
 };

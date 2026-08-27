@@ -66,6 +66,7 @@ public class DashboardAdminViewModel
     public int TicketsAbiertos { get; set; }
     public int TicketsEnProgreso { get; set; }
     public int TicketsResueltos { get; set; }
+    public double TiempoPromedioResolucionHoras { get; set; }
 
     public List<MetricaAreaViewModel> FallasPorUbicacion { get; set; } = new();
     public List<MetricaCategoriaViewModel> FallasPorCategoria { get; set; } = new();

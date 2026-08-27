@@ -169,10 +169,11 @@ export default {
           <div class="card card-tecnm p-3 border-0 shadow-sm">
             <div class="d-flex align-items-center justify-content-between">
               <div>
-                <div class="text-muted small fw-bold text-uppercase">En Progreso</div>
-                <div class="h2 fw-extrabold mb-0 text-info">{{ metrics.ticketsEnProgreso }}</div>
+                <div class="text-muted small fw-bold text-uppercase">Resueltos / SLA</div>
+                <div class="h2 fw-extrabold mb-0 text-success">{{ metrics.ticketsResueltos }}</div>
+                <div class="extra-small text-muted fw-semibold mt-1"><i class="bi bi-clock-history me-1 text-primary"></i>Prom. {{ metrics.tiempoPromedioResolucionHoras || 0 }} hrs</div>
               </div>
-              <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info"><i class="bi bi-gear-wide-connected"></i></div>
+              <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success"><i class="bi bi-check2-circle"></i></div>
             </div>
           </div>
         </div>
@@ -180,10 +181,11 @@ export default {
           <div class="card card-tecnm p-3 border-0 shadow-sm">
             <div class="d-flex align-items-center justify-content-between">
               <div>
-                <div class="text-muted small fw-bold text-uppercase">Resueltos</div>
-                <div class="h2 fw-extrabold mb-0 text-success">{{ metrics.ticketsResueltos }}</div>
+                <div class="text-muted small fw-bold text-uppercase">Eficiencia SLA</div>
+                <div class="h2 fw-extrabold mb-0 text-primary">{{ metrics.totalTickets > 0 ? Math.round((metrics.ticketsResueltos / metrics.totalTickets) * 100) : 0 }}%</div>
+                <div class="extra-small text-muted fw-semibold mt-1">Tasa de Resolución</div>
               </div>
-              <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success"><i class="bi bi-check2-circle"></i></div>
+              <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary"><i class="bi bi-lightning-charge-fill"></i></div>
             </div>
           </div>
         </div>

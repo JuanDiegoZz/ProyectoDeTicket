@@ -130,6 +130,18 @@ public class TicketsController : ControllerBase
         var enProgreso = await query.CountAsync(t => t.Estado == EstadoTicket.EnProgreso);
         var resueltos = await query.CountAsync(t => t.Estado == EstadoTicket.Resuelto);
 
+        var ticketsResueltosConFecha = await query
+            .Where(t => t.Estado == EstadoTicket.Resuelto && t.FechaResolucion.HasValue)
+            .Select(t => new { t.FechaCreacion, t.FechaResolucion })
+            .ToListAsync();
+
+        double tiempoPromedioHoras = 0;
+        if (ticketsResueltosConFecha.Any())
+        {
+            tiempoPromedioHoras = Math.Round(ticketsResueltosConFecha
+                .Average(t => (t.FechaResolucion!.Value - t.FechaCreacion).TotalHours), 1);
+        }
+
         var fallasUbicacion = await query
             .GroupBy(t => t.Ubicacion!.Nombre)
             .Select(g => new MetricaAreaViewModel { Ubicacion = g.Key, Cantidad = g.Count() })
@@ -171,6 +183,7 @@ public class TicketsController : ControllerBase
             ticketsAbiertos = abiertos,
             ticketsEnProgreso = enProgreso,
             ticketsResueltos = resueltos,
+            tiempoPromedioResolucionHoras = tiempoPromedioHoras,
             fallasPorUbicacion = fallasUbicacion,
             fallasPorCategoria = fallasCategoria,
             topSolicitantes = topSolicitantes,
